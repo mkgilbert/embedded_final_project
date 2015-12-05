@@ -1,9 +1,9 @@
 #include <avr/io.h>
 #include <stdio.h>
 #include "system.h"
-#include "spi.h"
+#include "lib/spi/spi.h"
 #include "sdcard.h"
-#include "uart.h"
+#include "lib/uart/uart.h"
 #include <util/delay.h>
 #include <string.h>
 
@@ -17,7 +17,7 @@ uint8_t SD_command(uint8_t cmd, uint32_t arg, uint16_t read) {
     unsigned char buffer[read];
     cmd |= 0x40;
     
-    printf("CMD (0x%02X) ", cmd);
+    //printf("CMD (0x%02X) ", cmd);
     
     CS_ENABLE();
     spi_rxtx(cmd);
@@ -32,7 +32,7 @@ uint8_t SD_command(uint8_t cmd, uint32_t arg, uint16_t read) {
         
     CS_DISABLE();
     
-    print_buffer(buffer, read, 16);
+    //uart_print_buffer(buffer, read, 16);
     
     return buffer[1];
 }
@@ -42,7 +42,7 @@ uint8_t SD_command_crc(uint8_t cmd, uint32_t arg, uint16_t read, uint8_t crc) {
     unsigned char buffer[read];
     cmd |= 0x40;
     
-    printf("CMD (0x%02X) ", cmd);
+    //printf("CMD (0x%02X) ", cmd);
     
     CS_ENABLE();
     spi_rxtx(cmd);
@@ -57,12 +57,12 @@ uint8_t SD_command_crc(uint8_t cmd, uint32_t arg, uint16_t read, uint8_t crc) {
     
     CS_DISABLE();
     
-    print_buffer(buffer, read, 16);
+    //uart_print_buffer(buffer, read, 16);
     
     return buffer[1];
 }
 
-uint8_t SD_init() {
+int8_t SD_init() {
     char i;
     
     // ]r:10
@@ -83,8 +83,19 @@ uint8_t SD_init() {
     SD_command_crc(SD_SEND_IF_COND, 0x400001aa, 8, 0x15);    
 
     // CMD1 until card comes out of idle, but maximum of 10 times
-    for(i=0; i<10 && SD_command(SD_SEND_OP_COND, 0x00000000, 8) != 0; i++)
-        _delay_ms(100);
+    //for(i=0; i<10 && SD_command(SD_SEND_OP_COND, 0x00000000, 8) != 0; i++)
+        //_delay_ms(100);
+		
+	// ACMD41 until card comes out of idle, maximum 10 times
+	for (i = 0; i < 10; i++) {
+		SD_command(55, 0x00000000, 8);
+		if (SD_command(41, 0x40000000, 8) == 0)
+			break;
+		_delay_ms(100);	
+	}
+	
+	// CMD16 - set block length
+	SD_command(SD_SET_BLOCKLEN, 0x00000200, 8);
     
     if(i == 10) // card did not come out of idle
         return -2;
@@ -144,15 +155,15 @@ void SD_write(uint32_t sector, uint8_t * buffer) {
     spi_rxtx(0xFF);        // CRC
     
     for(i=0; i<10 && spi_rxtx(0xFF) != 0x00; i++) {} // wait for 0
-    if (i == 10){
-        printf("%sDid not receive 0x0\n%s", C_RED, C_WHITE);
-    }
+    //if (i == 10){
+        //printf("%sDid not receive 0x0\n%s", C_RED, C_WHITE);
+    //}
     
     // sending data must begin with a start token of 0xFE
     for(i=0; i<10 && (spi_rxtx(0xFE) & 0x05) != 0x05; i++) {}      // response should be 0bxxx00101 format (which is 5)
-    if (i == 10){
-        printf("%sDid not receive 0x05\n%s", C_RED, C_WHITE);
-    }
+    //if (i == 10){
+        //printf("%sDid not receive 0x05\n%s", C_RED, C_WHITE);
+    //}
     
     for(i=0; i<len; i++) // send len bytes
         spi_rxtx(buffer[i]);
@@ -163,9 +174,9 @@ void SD_write(uint32_t sector, uint8_t * buffer) {
 
     uint8_t response = spi_rxtx(0xFF);
     
-    if (response == 0xE5){
-        printf("%Bytes written successfully\n%s", C_RED, C_WHITE);
-    }
+    //if (response == 0xE5){
+        //printf("%Bytes written successfully\n%s", C_RED, C_WHITE);
+    //}
     
     CS_DISABLE();
 }

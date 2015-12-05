@@ -1,7 +1,7 @@
 #include "fat32.h"
-#include "sdcard.h"
+#include "lib/sdcard/sdcard.h"
 #include "system.h"
-#include "uart.h"
+#include "lib/uart/uart.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -305,15 +305,15 @@ void fat32_print_directory(fat32_volume_t * volume, uint8_t partition_index, fat
         }
 
         fname = file->dir_name;
-        color = C_WHITE;
+        //color = C_WHITE;
         
         if (file->long_fname[0] != 0x0)
             fname = file->long_fname;
         
-        if (fat32_file_is_directory(file))
-            color = C_BLUE;
-        
-        printf("%s%s%s\t\t%lu bytes\n", color, fname, C_WHITE, file->size);
+        //if (fat32_file_is_directory(file))
+            //color = C_BLUE;
+        //
+        //printf("%s%s%s\t\t%lu bytes\n", color, fname, C_WHITE, file->size);
     }
 }
 
