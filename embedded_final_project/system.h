@@ -2,7 +2,7 @@
 #define SYSTEM_H
 #include <stdint.h>
 
-#define F_CPU 8000000
+#define F_CPU 28600000
 
 #define TRUE 1
 #define FALSE 0

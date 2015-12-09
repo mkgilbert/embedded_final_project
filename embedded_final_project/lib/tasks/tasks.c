@@ -17,6 +17,10 @@ unsigned char last_id = 1;
 // Returns 0 if no task could be created
 unsigned char task_create(void (*task)(), unsigned int interval, unsigned char repeat) {
 	
+	if (!clock_is_enabled()) {
+		clock_init();
+	}
+	
 	if (num_tasks == NUM_TASKS)
 		return 0;
 	
