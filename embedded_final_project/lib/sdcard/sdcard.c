@@ -10,9 +10,9 @@
 unsigned long sd_sector;
 unsigned short sd_pos;
 
-uint8_t SD_state = SD_STATE_NOT_INITIALIZED;
+uint8_t sd_state = SD_STATE_NOT_INITIALIZED;
 
-uint8_t SD_command(uint8_t cmd, uint32_t arg, uint16_t read) {
+uint8_t sd_command(uint8_t cmd, uint32_t arg, uint16_t read) {
     uint16_t i;
     unsigned char buffer[read];
     cmd |= 0x40;
@@ -37,7 +37,7 @@ uint8_t SD_command(uint8_t cmd, uint32_t arg, uint16_t read) {
     return buffer[1];
 }
 
-uint8_t SD_command_crc(uint8_t cmd, uint32_t arg, uint16_t read, uint8_t crc) {
+uint8_t sd_command_crc(uint8_t cmd, uint32_t arg, uint16_t read, uint8_t crc) {
     uint16_t i;
     unsigned char buffer[read];
     cmd |= 0x40;
@@ -62,7 +62,7 @@ uint8_t SD_command_crc(uint8_t cmd, uint32_t arg, uint16_t read, uint8_t crc) {
     return buffer[1];
 }
 
-int8_t SD_init() {
+int8_t sd_init() {
     char i;
     
     // ]r:10
@@ -73,14 +73,14 @@ int8_t SD_init() {
     // [0x40 0x00 0x00 0x00 0x00 0x95 r:8] until we get "1"
     
     
-    for(i=0; i<10 && SD_command(SD_GO_IDLE_STATE, 0x00000000, 8) != 1; i++)
+    for(i=0; i<10 && sd_command(SD_GO_IDLE_STATE, 0x00000000, 8) != 1; i++)
         _delay_ms(100);
     
     if(i == 10) // card did not respond to initialization
         return -1;
-    SD_state = SD_STATE_IDLE;
+    sd_state = SD_STATE_IDLE;
 
-    SD_command_crc(SD_SEND_IF_COND, 0x400001aa, 8, 0x15);    
+    sd_command_crc(SD_SEND_IF_COND, 0x400001aa, 8, 0x15);    
 
     // CMD1 until card comes out of idle, but maximum of 10 times
     //for(i=0; i<10 && SD_command(SD_SEND_OP_COND, 0x00000000, 8) != 0; i++)
@@ -88,26 +88,26 @@ int8_t SD_init() {
 		
 	// ACMD41 until card comes out of idle, maximum 10 times
 	for (i = 0; i < 10; i++) {
-		SD_command(55, 0x00000000, 8);
-		if (SD_command(41, 0x40000000, 8) == 0)
+		sd_command(55, 0x00000000, 8);
+		if (sd_command(41, 0x40000000, 8) == 0)
 			break;
 		_delay_ms(100);	
 	}
 	
 	// CMD16 - set block length
-	SD_command(SD_SET_BLOCKLEN, 0x00000200, 8);
+	sd_command(SD_SET_BLOCKLEN, 0x00000200, 8);
     
     if(i == 10) // card did not come out of idle
         return -2;
     
     sd_sector = sd_pos = 0;
     
-    SD_state = SD_STATE_COMMAND_READY;
+    sd_state = SD_STATE_COMMAND_READY;
     
     return 0;
 }
 
-void SD_read(uint32_t sector, uint16_t offset, uint8_t * buffer,
+void sd_read(uint32_t sector, uint16_t offset, uint8_t * buffer,
              uint16_t len) {
     
     uint16_t i = 0;
@@ -140,7 +140,7 @@ void SD_read(uint32_t sector, uint16_t offset, uint8_t * buffer,
     CS_DISABLE();
 }
 
-void SD_write(uint32_t sector, uint8_t * buffer) {
+void sd_write(uint32_t sector, uint8_t * buffer) {
     /* write a single block to sd card - len should ALWAYS be 512 */
     uint16_t i = 0;
     uint16_t len = 512;

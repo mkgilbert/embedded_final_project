@@ -27,12 +27,12 @@
 #define parse_uint24(X)  ((((uint32_t)(X)[2]) << 16) | (((uint32_t)(X)[1]) << 8) | (((uint32_t)(X)[0])))
 #define parse_uint32(X)  ((((uint32_t)(X)[3]) << 24) | (((uint32_t)(X)[2]) << 16) | (((uint32_t)(X)[1]) << 8) | (((uint32_t)(X)[0])))
 
-int8_t SD_init();
-uint8_t SD_command(uint8_t cmd, uint32_t arg, uint16_t read);
-uint8_t SD_command_crc(uint8_t cmd, uint32_t arg, uint16_t read, uint8_t crc);
-void SD_read(uint32_t sector, uint16_t offset, uint8_t * buffer, uint16_t len);
-void SD_write(uint32_t sector, uint8_t * buffer);
+int8_t sd_init();
+uint8_t sd_command(uint8_t cmd, uint32_t arg, uint16_t read);
+uint8_t sd_command_crc(uint8_t cmd, uint32_t arg, uint16_t read, uint8_t crc);
+void sd_read(uint32_t sector, uint16_t offset, uint8_t * buffer, uint16_t len);
+void sd_write(uint32_t sector, uint8_t * buffer);
 
-uint8_t SD_state;
+uint8_t sd_state;
 
 #endif /* !SDCARD_H */
