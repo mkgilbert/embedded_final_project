@@ -10,25 +10,31 @@
 #include <avr/io.h>
 
 unsigned long long volatile ticks;
+uint8_t enabled = 0;
 
 void clock_init() {
-	// Prescaler = 64, CTC Mode
-	TCCR1B |= (1 << WGM12) | (1 << CS11);
+	// CTC Mode
+	TCCR0A = (1 << WGM01);
+	
+	// Prescaler
+	TCCR0B = (1 << CS02);
 	
 	// Initialize Counter
-	TCNT1 = 0;
+	TCNT0 = 0;
 	
 	// Initialize Compare Value
-	OCR1A = 1000;
+	OCR0A = 111;
 	
 	// Enable Compare Interrupt
-	TIMSK1 |= (1 << OCIE1A);
+	TIMSK0 = (1 << OCIE0A);
 	
 	// Enable timer interrupts
 	sei();
+	
+	enabled = 1;
 }
 
-ISR (TIMER1_COMPA_vect)
+ISR (TIMER0_COMPA_vect)
 {
 	// Increment the system clock
 	ticks = ticks + 1;
@@ -38,9 +44,15 @@ ISR (TIMER1_COMPA_vect)
 void clock_stop() {
 	TCCR1B = 0;
 	TIMSK1 &= ~(1 << OCIE1A);
+	
+	enabled = 0;
 }
 
 // Get the number of milliseconds in the system clock
 unsigned long long clock_get_ms() {
 	return ticks;
+}
+
+uint8_t clock_is_enabled() {
+	return enabled;
 }
