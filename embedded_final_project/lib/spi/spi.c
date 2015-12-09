@@ -8,7 +8,7 @@ void spi_init (void) {
     SPI_PORT |= MISO; // pullup in MISO, might not be needed
 
     //SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0) | (1 << SPR1);
-    SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0) | (1 << SPR1);
+    SPCR = (1 << SPE) | (1 << MSTR);
     
     char i;
     
