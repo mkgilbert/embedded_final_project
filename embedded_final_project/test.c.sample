@@ -1,0 +1,53 @@
+/*
+ * CFile1.c
+ *
+ * Created: 12/8/2015 5:51:36 PM
+ *  Author: Harrison
+ */ 
+
+#include <avr/io.h>
+#include <util/delay.h>
+#include "lib/uart/uart.h"
+#include "lib/print_tools/colors.h"
+#include "lib/print_tools/print_tools.h"
+#include "lib/spi/spi.h"
+#include "lib/sdcard/sdcard.h"
+#include "lib/fat32/fat32.h"
+#include "lib/port_helpers/port_helpers.h"
+#include "test.h"
+
+#define DELAY		500
+#define LED_PORT	A
+#define LED_PIN		0
+
+void start() {
+	PORT_OUTPUT(LED);
+	PORT_SET(LED);
+	
+	uart_init();
+	
+	pt_clear_screen();
+	pt_set_color_modifier(FORE(GREEN));
+	printf("UART ready.\n");
+	
+	spi_init();
+	printf("SPI ready.\n");
+	
+	switch(SD_init()) {
+		case 0:
+		printf("SD ready...\n");
+		break;
+		case -1:
+		printf("SD Card did not enter idle...");
+		return;
+		case -2:
+		printf("SD Card did not exit idle...");
+		return;
+	}
+	
+	while(1)
+	{
+		PORTB ^= _BV(PB0);
+		_delay_ms(DELAY);
+	}
+}

@@ -36,3 +36,5 @@ embedded_final_project/Debug/
 #Other
 embedded_final_project/bin/
 embedded_final_project/obj/
+embedded_final_project/test.c
+embedded_final_project/test.h
