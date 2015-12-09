@@ -1,9 +1,9 @@
-#include <avr/io.h>
-#include <stdio.h>
 #include "system.h"
 #include "lib/spi/spi.h"
 #include "sdcard.h"
 #include "lib/uart/uart.h"
+#include <avr/io.h>
+#include <stdio.h>
 #include <util/delay.h>
 #include <string.h>
 
@@ -51,7 +51,7 @@ uint8_t sd_command(uint8_t cmd, uint32_t arg, uint16_t read) {
 	buffer_out[2] = arg >> 16;
 	buffer_out[3] = arg >> 8;
 	buffer_out[4] = arg;
-	buffer_out[5] = sd_crc7(&buffer_out, 5);
+	buffer_out[5] = sd_crc7(buffer_out, 5);
 
 	for (i=0; i<6; i++)
 		spi_rxtx(buffer_out[i]);
@@ -65,7 +65,7 @@ uint8_t sd_command(uint8_t cmd, uint32_t arg, uint16_t read) {
 }
 
 int8_t sd_init() {
-    char i;
+    uint8_t i;
     
     CS_DISABLE();
     for(i=0; i<10; i++) // idle for 1 bytes / 80 clocks
@@ -124,6 +124,9 @@ void sd_read(uint32_t sector, uint16_t offset, uint8_t * buffer,
     // skip checksum
     spi_rxtx(0xFF);
     spi_rxtx(0xFF);
+	
+	// wait for the device to become available again
+	for (i=0; i<SD_RW_WAIT_RETRIES && spi_rxtx(0xFF) != 0xFF; i++) {};
     
     CS_DISABLE();
 }
