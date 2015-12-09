@@ -114,6 +114,12 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="game.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="game.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="test.c">
       <SubType>compile</SubType>
     </Compile>
