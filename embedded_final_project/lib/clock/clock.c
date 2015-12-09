@@ -9,7 +9,7 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-unsigned long long volatile ticks;
+uint64_t volatile ticks = 0x00000000;
 uint8_t enabled = 0;
 
 void clock_init() {
@@ -37,7 +37,7 @@ void clock_init() {
 ISR (TIMER0_COMPA_vect)
 {
 	// Increment the system clock
-	ticks = ticks + 1;
+	ticks++;
 }
 
 // Stop the clock
@@ -49,7 +49,7 @@ void clock_stop() {
 }
 
 // Get the number of milliseconds in the system clock
-unsigned long long clock_get_ms() {
+uint64_t clock_get_ms() {
 	return ticks;
 }
 

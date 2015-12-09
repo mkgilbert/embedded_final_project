@@ -9,19 +9,22 @@
 #ifndef TASKS_H_
 #define TASKS_H_
 
-#define NUM_TASKS 20
+#include <stdint.h>
+
+#define NUM_TASKS 5
 
 typedef struct {
-	unsigned char uid;          // Unique ID
-	unsigned long long created; // Creation time
-	unsigned long long next_expiration; // Next expiration time
-	unsigned int interval;      // How often executed in ms
-	unsigned char repeat;       // Repeat or no?
-	void (*task)();             // Function to perform task
+	uint8_t uid;                 // Unique ID
+	uint64_t created;            // Creation time
+	uint64_t next_expiration;    // Next expiration time
+	uint64_t interval;           // How often executed in ms
+	uint8_t repeat;              // Repeat or no?
+	void (*task)();              // Function to perform task
 } TASK;
 
-unsigned char task_create(void (*task)(), unsigned int interval, unsigned char repeat);
+uint8_t task_create(void (*task)(), uint64_t interval, uint8_t repeat);
 void task_update();
-void task_delete(unsigned char id);
+void task_delete(uint8_t id);
+void task_reset(uint8_t id);
 
 #endif /* TASKS_H_ */

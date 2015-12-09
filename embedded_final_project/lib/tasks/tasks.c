@@ -10,12 +10,12 @@
 
 // The list of available tasks
 TASK tasks[NUM_TASKS];
-char num_tasks = 0;
-unsigned char last_id = 1;
+uint8_t num_tasks = 0;
+uint8_t last_id = 1;
 
 // Creates a new task and returns the UID of the newly created task.
 // Returns 0 if no task could be created
-unsigned char task_create(void (*task)(), unsigned int interval, unsigned char repeat) {
+uint8_t task_create(void (*task)(), uint64_t interval, uint8_t repeat) {
 	
 	if (!clock_is_enabled()) {
 		clock_init();
@@ -43,10 +43,10 @@ unsigned char task_create(void (*task)(), unsigned int interval, unsigned char r
 void task_update() {
 	
 	// Get the current time
-	unsigned long long time = clock_get_ms();
+	uint64_t time = clock_get_ms();
 	
 	// Iterate over all of the tasks
-	char i;
+	uint8_t i;
 	TASK* t;
 	for(i = 0; i < num_tasks; i++) {
 		t = &tasks[i];
@@ -68,12 +68,26 @@ void task_update() {
 	}
 }
 
+// Reset a running task's timer
+void task_reset(uint8_t id) {
+	// Iterate over the tasks to find the specified task
+	uint8_t i;
+	TASK* t;
+	for (i = 0; i < num_tasks; i++) {
+		t = &tasks[i];
+		if (t->uid == id) {
+			t->next_expiration = clock_get_ms() + t->interval;
+			return;
+		}
+	}
+}
+
 // Delete a task with the specified ID
-void task_delete(unsigned char id) {
+void task_delete(uint8_t id) {
 	
 	// Iterate over the tasks to find the specified task
-	char i;
-	char found_index = -1;
+	uint8_t i;
+	int8_t found_index = -1;
 	TASK* t;
 	for (i = 0; i < num_tasks; i++) {
 		t = &tasks[i];
