@@ -58,7 +58,7 @@ void fat32_read_partition(fat32_volume_t * volume, uint8_t partition_index){
     
     // Read the partiton table
     //TODO: Abstract away SD_read
-    SD_read(0, 446 + partition_index * 16, buffer, 16);
+    sd_read(0, 446 + partition_index * 16, buffer, 16);
     
     // Grab the beginning of the Volume ID
     partition->lba_begin = fat32_parse_uint32(buffer + 8);
@@ -73,7 +73,7 @@ void fat32_read_partition(fat32_volume_t * volume, uint8_t partition_index){
     // Read the Volume ID information
     
     //TODO: Abstract away SD_read
-    SD_read(partition->lba_begin, 0, buffer, 64);
+    sd_read(partition->lba_begin, 0, buffer, 64);
     
     partition->num_reserved_sectors = fat32_parse_uint16(buffer + 0x0E);
     partition->num_fats = fat32_parse_uint8(buffer + 0x10);
@@ -102,7 +102,7 @@ void fat32_FAT_lookup(fat32_volume_t * volume, uint8_t partition_index, uint32_t
 
     uint8_t sector = 0;
     
-    SD_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, 0, buffer, 512);
+    sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, 0, buffer, 512);
 
     unsigned char * working_buffer = buffer;
     /*
@@ -126,7 +126,7 @@ void fat32_FAT_lookup(fat32_volume_t * volume, uint8_t partition_index, uint32_t
             working_buffer += 32;
             // See if we need to read the next sector
             if (working_buffer - buffer >= 512){
-                SD_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
+                sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
                 working_buffer = buffer;
             }
             continue;
@@ -174,7 +174,7 @@ void fat32_FAT_lookup(fat32_volume_t * volume, uint8_t partition_index, uint32_t
         working_buffer += 32;
         // See if we need to read the next sector
         if (working_buffer - buffer >= 512){
-            SD_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
+            sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
             working_buffer = buffer;
         }
         
@@ -217,7 +217,7 @@ void fat32_print_directory(fat32_volume_t * volume, uint8_t partition_index, fat
     uint8_t sector = 0;
     uint32_t cluster = dir->first_cluster;
     
-    SD_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, 0, buffer, 512);
+    sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, 0, buffer, 512);
     
     //print_buffer(buffer, 512, 16);
     unsigned char * working_buffer = buffer;
@@ -245,7 +245,7 @@ void fat32_print_directory(fat32_volume_t * volume, uint8_t partition_index, fat
             working_buffer += 32;
             // See if we need to read the next sector
             if (working_buffer - buffer >= 512){
-                SD_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
+                sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
                 //print_buffer(buffer, 512, 16);
                 working_buffer = buffer;
             }
@@ -275,7 +275,7 @@ void fat32_print_directory(fat32_volume_t * volume, uint8_t partition_index, fat
             working_buffer += 32;
             // See if we need to read the next sector
             if (working_buffer - buffer >= 512){
-                SD_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
+                sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
                 working_buffer = buffer;
             }
         }
@@ -296,7 +296,7 @@ void fat32_print_directory(fat32_volume_t * volume, uint8_t partition_index, fat
         working_buffer += 32;
         // See if we need to read the next sector
         if (working_buffer - buffer >= 512){
-            SD_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
+            sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
             working_buffer = buffer;
         }
         
@@ -335,12 +335,12 @@ void fat32_read_file_data(fat32_volume_t * volume, uint8_t partition_index, fat3
     uint8_t fat_buffer[4];
     while (offset >= 512) {
         if (offset >= partition->sectors_per_cluster*512){
-            SD_read(partition->fat_begin_lba + cluster/128, (cluster % 128) * 4, fat_buffer, 4);
+            sd_read(partition->fat_begin_lba + cluster/128, (cluster % 128) * 4, fat_buffer, 4);
             cluster = fat32_parse_uint32(fat_buffer);
         }
         offset -= 512 * partition->sectors_per_cluster;
     }
-    SD_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, offset, buffer, length);
+    sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, offset, buffer, length);
     
     return;
 }
@@ -360,12 +360,12 @@ void fat32_write_file_data(fat32_volume_t * volume, uint8_t partition_index, fat
     uint8_t fat_buffer[4];
     while (offset >= 512) {
         if (offset >= partition->sectors_per_cluster*512){
-            SD_read(partition->fat_begin_lba + cluster/128, (cluster % 128) * 4, fat_buffer, 4);
+            sd_read(partition->fat_begin_lba + cluster/128, (cluster % 128) * 4, fat_buffer, 4);
             cluster = fat32_parse_uint32(fat_buffer);
         }
         offset -= 512 * partition->sectors_per_cluster;
     }
-    SD_write(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, buffer);
+	sd_write(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, buffer);
     
     return;
 }

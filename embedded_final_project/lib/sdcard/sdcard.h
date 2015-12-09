@@ -4,6 +4,8 @@
 #include <stdint.h>
 
 /* Preprocessor directives */
+// SD commands
+// - Always OR's in 0x40 in sd_command
 #define SD_GO_IDLE_STATE 0x00
 #define SD_SEND_OP_COND 0x01
 #define SD_SWITCH_FUNC 0x06
@@ -17,6 +19,9 @@
 #define SD_READ_MULTIPLE_BLOCK 0x12
 #define SD_WRITE_SINGLE_BLOCK 0x18
 
+#define SD_COMMAND_LEN 6
+#define SD_RW_WAIT_RETRIES 16384
+
 #define SD_STATE_NOT_INITIALIZED 0x00
 #define SD_STATE_IDLE 0x01
 #define SD_STATE_COMMAND_READY 0x02
@@ -27,12 +32,11 @@
 #define parse_uint24(X)  ((((uint32_t)(X)[2]) << 16) | (((uint32_t)(X)[1]) << 8) | (((uint32_t)(X)[0])))
 #define parse_uint32(X)  ((((uint32_t)(X)[3]) << 24) | (((uint32_t)(X)[2]) << 16) | (((uint32_t)(X)[1]) << 8) | (((uint32_t)(X)[0])))
 
-int8_t SD_init();
-uint8_t SD_command(uint8_t cmd, uint32_t arg, uint16_t read);
-uint8_t SD_command_crc(uint8_t cmd, uint32_t arg, uint16_t read, uint8_t crc);
-void SD_read(uint32_t sector, uint16_t offset, uint8_t * buffer, uint16_t len);
-void SD_write(uint32_t sector, uint8_t * buffer);
+int8_t sd_init();
+uint8_t sd_command(uint8_t cmd, uint32_t arg, uint16_t read);
+void sd_read(uint32_t sector, uint16_t offset, uint8_t * buffer, uint16_t len);
+void sd_write(uint32_t sector, uint8_t * buffer);
 
-uint8_t SD_state;
+uint8_t sd_state;
 
 #endif /* !SDCARD_H */

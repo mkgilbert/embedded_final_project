@@ -7,122 +7,110 @@
 #include <util/delay.h>
 #include <string.h>
 
-unsigned long sd_sector;
-unsigned short sd_pos;
+uint8_t sd_state = SD_STATE_NOT_INITIALIZED;
 
-uint8_t SD_state = SD_STATE_NOT_INITIALIZED;
-
-uint8_t SD_command(uint8_t cmd, uint32_t arg, uint16_t read) {
-    uint16_t i;
-    unsigned char buffer[read];
-    cmd |= 0x40;
-    
-    //printf("CMD (0x%02X) ", cmd);
-    
-    CS_ENABLE();
-    spi_rxtx(cmd);
-    spi_rxtx(arg>>24);
-    spi_rxtx(arg>>16);
-    spi_rxtx(arg>>8);
-    spi_rxtx(arg);
-    spi_rxtx(0x95);
-    
-    for(i=0; i<read; i++)
-        buffer[i] = spi_rxtx(0xFF);
-        
-    CS_DISABLE();
-    
-    //uart_print_buffer(buffer, read, 16);
-    
-    return buffer[1];
+//sd_crc7(&data, length)
+//
+// Calculates and returns the CRC-7 for use with SD cards
+//
+// Source: http://www.microchip.com/forums/tm.aspx?m=94767&mpage=1&key=CRC7%F0%97%AA%B8
+//
+uint8_t sd_crc7 (uint8_t *data, uint8_t length)
+{
+	uint8_t i, bit, c, crc;
+	crc = 0x00; // Set initial value
+	
+	for (i = 0; i < length; i++, data++)
+	{
+		c = *data;
+		
+		for (bit = 0; bit < 8; bit++)
+		{
+			crc = crc << 1;
+			if ((c ^ crc) & 0x80)
+				crc = crc ^ 0x09;
+			c = c << 1;
+		}
+		
+		crc = crc & 0x7F;
+	}
+	
+	crc = (crc << 1) | (0x01);
+	return crc;
 }
 
-uint8_t SD_command_crc(uint8_t cmd, uint32_t arg, uint16_t read, uint8_t crc) {
+uint8_t sd_command(uint8_t cmd, uint32_t arg, uint16_t read) {
     uint16_t i;
-    unsigned char buffer[read];
-    cmd |= 0x40;
-    
-    //printf("CMD (0x%02X) ", cmd);
-    
+	uint8_t buffer_in[read];
+	uint8_t buffer_out[SD_COMMAND_LEN];
+	
     CS_ENABLE();
-    spi_rxtx(cmd);
-    spi_rxtx(arg>>24);
-    spi_rxtx(arg>>16);
-    spi_rxtx(arg>>8);
-    spi_rxtx(arg);
-    spi_rxtx(crc);
-    
+	
+	buffer_out[0] = cmd | 0x40;
+	buffer_out[1] = arg >> 24;
+	buffer_out[2] = arg >> 16;
+	buffer_out[3] = arg >> 8;
+	buffer_out[4] = arg;
+	buffer_out[5] = sd_crc7(&buffer_out, 5);
+
+	for (i=0; i<6; i++)
+		spi_rxtx(buffer_out[i]);
+	    
     for(i=0; i<read; i++)
-        buffer[i] = spi_rxtx(0xFF);
+        buffer_in[i] = spi_rxtx(0xFF);
     
     CS_DISABLE();
     
-    //uart_print_buffer(buffer, read, 16);
-    
-    return buffer[1];
+    return buffer_in[1];
 }
 
-int8_t SD_init() {
+int8_t sd_init() {
     char i;
     
-    // ]r:10
     CS_DISABLE();
     for(i=0; i<10; i++) // idle for 1 bytes / 80 clocks
         spi_rxtx(0xFF);
     
-    // [0x40 0x00 0x00 0x00 0x00 0x95 r:8] until we get "1"
-    
-    
-    for(i=0; i<10 && SD_command(SD_GO_IDLE_STATE, 0x00000000, 8) != 1; i++)
+    for(i=0; i<10 && sd_command(SD_GO_IDLE_STATE, 0x00000000, 8) != 1; i++)
         _delay_ms(100);
     
     if(i == 10) // card did not respond to initialization
         return -1;
-    SD_state = SD_STATE_IDLE;
+    sd_state = SD_STATE_IDLE;
 
-    SD_command_crc(SD_SEND_IF_COND, 0x400001aa, 8, 0x15);    
-
-    // CMD1 until card comes out of idle, but maximum of 10 times
-    //for(i=0; i<10 && SD_command(SD_SEND_OP_COND, 0x00000000, 8) != 0; i++)
-        //_delay_ms(100);
-		
+    sd_command(SD_SEND_IF_COND, 0x400001aa, 8);
+	
 	// ACMD41 until card comes out of idle, maximum 10 times
 	for (i = 0; i < 10; i++) {
-		SD_command(55, 0x00000000, 8);
-		if (SD_command(41, 0x40000000, 8) == 0)
+		sd_command(55, 0x00000000, 8);
+		if (sd_command(41, 0x40000000, 8) == 0)
 			break;
 		_delay_ms(100);	
 	}
 	
 	// CMD16 - set block length
-	SD_command(SD_SET_BLOCKLEN, 0x00000200, 8);
+	sd_command(SD_SET_BLOCKLEN, 0x00000200, 8);
     
     if(i == 10) // card did not come out of idle
         return -2;
-    
-    sd_sector = sd_pos = 0;
-    
-    SD_state = SD_STATE_COMMAND_READY;
+       
+    sd_state = SD_STATE_COMMAND_READY;
     
     return 0;
 }
 
-void SD_read(uint32_t sector, uint16_t offset, uint8_t * buffer,
+void sd_read(uint32_t sector, uint16_t offset, uint8_t * buffer,
              uint16_t len) {
     
     uint16_t i = 0;
-    
+
+    sd_command(SD_READ_SINGLE_BLOCK, sector, 0);
+	
     CS_ENABLE();
-    spi_rxtx(SD_READ_SINGLE_BLOCK | 0x40);
-    spi_rxtx(sector>>24); // sector >> 24
-    spi_rxtx(sector>>16); // sector >> 16
-    spi_rxtx(sector>>8); // sector >> 8
-    spi_rxtx(sector); // sector
-    spi_rxtx(0x95);
+	
+    for(i=0; i<SD_RW_WAIT_RETRIES && spi_rxtx(0xFF) != 0x00; i++) {} // wait for 0
     
-    for(i=0; i<10 && spi_rxtx(0xFF) != 0x00; i++) {} // wait for 0
-    
-    for(i=0; i<10 && spi_rxtx(0xFF) != 0xFE; i++) {} // wait for data start
+    for(i=0; i<SD_RW_WAIT_RETRIES && spi_rxtx(0xFF) != 0xFE; i++) {} // wait for data start
     
     for(i=0; i<offset; i++) // "skip" bytes
         spi_rxtx(0xFF);
@@ -140,7 +128,7 @@ void SD_read(uint32_t sector, uint16_t offset, uint8_t * buffer,
     CS_DISABLE();
 }
 
-void SD_write(uint32_t sector, uint8_t * buffer) {
+void sd_write(uint32_t sector, uint8_t * buffer) {
     /* write a single block to sd card - len should ALWAYS be 512 */
     uint16_t i = 0;
     uint16_t len = 512;
