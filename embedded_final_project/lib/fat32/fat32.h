@@ -41,13 +41,9 @@ typedef struct _fat32_file {
     uint32_t size;
     char long_fname[64];
     uint8_t state;
-} fat32_file_t;
-
-typedef struct _fat32_tmp_file {
-	uint32_t first_cluster;
-	uint32_t size;
 	uint32_t previous_cluster;
-} fat32_tmp_file;
+	uint16_t clusters_read;
+} fat32_file_t;
 
 typedef struct _fat32_disk_t {
     fat32_partition_t partition;
