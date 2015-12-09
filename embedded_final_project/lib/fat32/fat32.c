@@ -2,17 +2,24 @@
 #include "lib/sdcard/sdcard.h"
 #include "system.h"
 #include "lib/uart/uart.h"
+#include "lib/print_tools/colors.h"
 #include <string.h>
 #include <stdio.h>
 
-void fat32_volume_init(fat32_volume_t * volume){
+fat32_disk_t current_disk;
+fat32_file_t last_file;
+
+void fat32_init(){
+	fat32_disk_init(&current_disk);
+	fat32_read_partition();
+}
+
+void fat32_disk_init(fat32_disk_t * disk){
     // Set the default state
-    volume->state = FAT32_STATE_EMPTY;
+    disk->state = FAT32_STATE_EMPTY;
     // Ensure that the partitions are initialized
-    uint8_t i = 0;
-    for (; i < 4; i++) {
-        fat32_partition_init(volume->partitions + i);
-    }
+    fat32_partition_init(&(disk->partition));
+	fat32_read_partition();
 }
 
 void fat32_file_init(fat32_file_t * file){
@@ -42,23 +49,23 @@ void fat32_partition_init(fat32_partition_t * partition){
     partition->type_code = 0x00;
 }
 
-void fat32_partition_get_root(fat32_volume_t * volume, uint8_t partition_index, fat32_file_t * file){
-    //fat32_partition_t * partition = &(volume->partitions[partition_index]);
-    
+void fat32_get_root(fat32_file_t * file){
     fat32_file_init(file);
     file->attrs = FAT32_FILE_ATTR_DIRECTORY;
     file->first_cluster = FAT32_ROOT_CLUSTER;
     file->state = FAT32_STATE_OK;
 }
 
-void fat32_read_partition(fat32_volume_t * volume, uint8_t partition_index){
+void fat32_read_partition(){
     // Define a buffer so we can read in
     uint8_t buffer[64];
-    fat32_partition_t * partition = &(volume->partitions[partition_index]);
+    fat32_partition_t * partition = &(current_disk.partition);
     
-    // Read the partiton table
+    // Read the partition table
     //TODO: Abstract away SD_read
-    sd_read(0, 446 + partition_index * 16, buffer, 16);
+    sd_read(0, 446, buffer, 16);
+	
+	uart_print_buffer(&buffer, 64, 16);
     
     // Grab the beginning of the Volume ID
     partition->lba_begin = fat32_parse_uint32(buffer + 8);
@@ -74,6 +81,8 @@ void fat32_read_partition(fat32_volume_t * volume, uint8_t partition_index){
     
     //TODO: Abstract away SD_read
     sd_read(partition->lba_begin, 0, buffer, 64);
+	
+	uart_print_buffer(&buffer, 64, 16);
     
     partition->num_reserved_sectors = fat32_parse_uint16(buffer + 0x0E);
     partition->num_fats = fat32_parse_uint8(buffer + 0x10);
@@ -89,20 +98,18 @@ void fat32_read_partition(fat32_volume_t * volume, uint8_t partition_index){
     partition->state = FAT32_STATE_OK;
 }
 
-void fat32_FAT_lookup(fat32_volume_t * volume, uint8_t partition_index, uint32_t cluster, fat32_file_t * file, char * fname){
-    // Read the FAT
-    
+void fat32_file_lookup(fat32_file_t * file, char * fname){
+	fat32_file_t root;
+	fat32_file_init(file);
+	fat32_get_root(&root);
+	    
     // Create a shortcut to the partition we're working with
-    fat32_partition_t * partition = volume->partitions + partition_index;
-    
-    // Clear the file we're writing to
-    fat32_file_init(file);
+    fat32_partition_t * partition = &current_disk.partition;
     
     uint8_t buffer[512];
-
     uint8_t sector = 0;
     
-    sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, 0, buffer, 512);
+    sd_read(partition->cluster_begin_lba + (root.first_cluster - 2) * partition->sectors_per_cluster + sector, 0, buffer, 512);
 
     unsigned char * working_buffer = buffer;
     /*
@@ -126,7 +133,7 @@ void fat32_FAT_lookup(fat32_volume_t * volume, uint8_t partition_index, uint32_t
             working_buffer += 32;
             // See if we need to read the next sector
             if (working_buffer - buffer >= 512){
-                sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
+                sd_read(partition->cluster_begin_lba + (root.first_cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
                 working_buffer = buffer;
             }
             continue;
@@ -155,7 +162,7 @@ void fat32_FAT_lookup(fat32_volume_t * volume, uint8_t partition_index, uint32_t
             working_buffer += 32;
             // See if we need to read the next sector
             if (working_buffer - buffer >= 512){
-                SD_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
+                sd_read(partition->cluster_begin_lba + (root.first_cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
                 working_buffer = buffer;
             }
         }
@@ -170,31 +177,16 @@ void fat32_FAT_lookup(fat32_volume_t * volume, uint8_t partition_index, uint32_t
         
         file->state = FAT32_STATE_OK;
         
+		if (strcmp(fname, file->long_fname) == 0){
+			return;
+		}
+		
         // Increment the buffer
         working_buffer += 32;
         // See if we need to read the next sector
         if (working_buffer - buffer >= 512){
-            sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
+            sd_read(partition->cluster_begin_lba + (root.first_cluster - 2) * partition->sectors_per_cluster + ++sector, 0, buffer, 512);
             working_buffer = buffer;
-        }
-        
-        if (file->long_fname[0] > 0){
-            if (strcmp(fname, file->long_fname) == 0){
-                return;
-            }
-        }
-        else if (strcmp(fname, ".") == 0){
-            if (file->dir_name[0] == '.'){
-                return;
-            }
-        }
-        else if (strcmp(fname, "..") == 0){
-            if (file->dir_name[0] == '.' && file->dir_name[1] == '.'){
-                return;
-            }
-        }
-        else if (strcmp(fname, file->dir_name) == 0){
-            return;
         }
     }
 
@@ -203,11 +195,11 @@ void fat32_FAT_lookup(fat32_volume_t * volume, uint8_t partition_index, uint32_t
     return;
 }
 
-void fat32_print_directory(fat32_volume_t * volume, uint8_t partition_index, fat32_file_t * dir){
+void fat32_print_directory(fat32_file_t * dir){
     // Read the FAT
     
     // Create a shortcut to the partition we're working with
-    fat32_partition_t * partition = volume->partitions + partition_index;
+    fat32_partition_t * partition = &current_disk.partition;
     
     // Create a tmp file to use while looking at files
     fat32_file_t tmp_file;
@@ -219,7 +211,7 @@ void fat32_print_directory(fat32_volume_t * volume, uint8_t partition_index, fat
     
     sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, 0, buffer, 512);
     
-    //print_buffer(buffer, 512, 16);
+    uart_print_buffer(&buffer, 512, 16);
     unsigned char * working_buffer = buffer;
     /*
      
@@ -240,7 +232,7 @@ void fat32_print_directory(fat32_volume_t * volume, uint8_t partition_index, fat
     while (working_buffer[0] != 0) {
         fat32_file_init(file);
         // Check to see if this entry is unused
-        if (working_buffer[0] == 0xE5){
+        if (working_buffer[0] == 0xE5 || working_buffer[11] == 0x08){
             // Increment the buffer and skip this entry
             working_buffer += 32;
             // See if we need to read the next sector
@@ -313,16 +305,16 @@ void fat32_print_directory(fat32_volume_t * volume, uint8_t partition_index, fat
         //if (fat32_file_is_directory(file))
             //color = C_BLUE;
         //
-        //printf("%s%s%s\t\t%lu bytes\n", color, fname, C_WHITE, file->size);
+        printf("%s%s%s\t\t%lu bytes\n", color, fname, FORE(WHITE), file->size);
     }
 }
 
-void fat32_read_file_data(fat32_volume_t * volume, uint8_t partition_index, fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset){
+void fat32_read_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset){
     
     bzero(buffer, length);
     
     // Create a shortcut to the partition we're working with
-    fat32_partition_t * partition = volume->partitions + partition_index;
+    fat32_partition_t * partition = &current_disk.partition;
     uint32_t sector = (offset/512) % partition->sectors_per_cluster;
     uint32_t cluster = file->first_cluster;
     
@@ -345,9 +337,9 @@ void fat32_read_file_data(fat32_volume_t * volume, uint8_t partition_index, fat3
     return;
 }
 
-void fat32_write_file_data(fat32_volume_t * volume, uint8_t partition_index, fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset){
+void fat32_write_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset){
     // Create a shortcut to the partition we're working with
-    fat32_partition_t * partition = volume->partitions + partition_index;
+    fat32_partition_t * partition = &current_disk.partition;
     uint32_t sector = (offset/512) % partition->sectors_per_cluster;
     uint32_t cluster = file->first_cluster;
     

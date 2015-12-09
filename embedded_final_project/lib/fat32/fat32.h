@@ -17,7 +17,6 @@
 #define FAT32_FILE_ATTR_HIDDEN 0x02
 
 #define fat32_file_is_directory(FILE) (((FILE)->attrs & FAT32_FILE_ATTR_DIRECTORY) > (0) ? (1) : (0))
-
 #define fat32_file_is_hidden(FILE) (((FILE)->attrs & FAT32_FILE_ATTR_HIDDEN) > (0) ? (1) : (0))
 
 typedef struct _fat32_partition {
@@ -44,27 +43,25 @@ typedef struct _fat32_file {
     uint8_t state;
 } fat32_file_t;
 
-typedef struct _fat32_volume {
-    fat32_partition_t partitions[4];
-    uint8_t state;
-} fat32_volume_t;
+typedef struct _fat32_tmp_file {
+	uint32_t first_cluster;
+	uint32_t size;
+	uint32_t previous_cluster;
+} fat32_tmp_file;
 
-typedef struct _fat32_fat {
-    fat32_partition_t partitions[4];
+typedef struct _fat32_disk_t {
+    fat32_partition_t partition;
     uint8_t state;
-} fat32_fat_t;
+} fat32_disk_t;
 
-void fat32_volume_init(fat32_volume_t * volume);
+void fat32_init();
+
+void fat32_disk_init(fat32_disk_t* disk);
 void fat32_file_init(fat32_file_t * file);
 void fat32_partition_init(fat32_partition_t * partition);
-
-void fat32_read_partition(fat32_volume_t * volume, uint8_t partition_index);
-void fat32_read_file_data(fat32_volume_t * volume, uint8_t partition_index, fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset);
-
-void fat32_FAT_lookup(fat32_volume_t * volume, uint8_t partition_index, uint32_t cluster, fat32_file_t * file, char * fname);
-void fat32_print_directory(fat32_volume_t * volume, uint8_t partition_index, fat32_file_t * dir);
-void fat32_dump_fat(fat32_volume_t * volume, uint8_t partition_index);
-void fat32_partition_get_root(fat32_volume_t * volume, uint8_t partition_index, fat32_file_t * file);
-void fat32_write_file_data(fat32_volume_t * volume, uint8_t partition_index, fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset);
+void fat32_read_partition();
+void fat32_read_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset);
+void fat32_get_root(fat32_file_t * file);
+void fat32_write_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset);
 
 #endif /* !FAT32_H */
