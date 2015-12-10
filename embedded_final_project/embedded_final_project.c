@@ -5,8 +5,6 @@
  *  Author: mkg
  */ 
 
-#define F_CPU 1000000UL
-
 #include "test.h"
 
 int main(void)
