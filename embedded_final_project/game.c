@@ -5,6 +5,7 @@
  *  Author: Harrison
  */ 
 
+#include "system.h"
 #include <avr/io.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,7 @@
 #include "lib/print_tools/colors.h"
 #include "lib/print_tools/print_tools.h"
 #include "lib/port_helpers/port_helpers.h"
+#include "lib/kb/kb.h"
 
 // LED Ports and Pins
 #define GAME_LED_RED_PORT		D
@@ -44,10 +46,10 @@
 #define GAME_MOVE_NONE		4
 
 // Game buttons
-#define GAME_BUTTON_YELLOW	'a'
-#define GAME_BUTTON_GREEN   'w'
-#define GAME_BUTTON_RED     'd'
-#define GAME_BUTTON_BLUE    's'
+#define GAME_BUTTON_YELLOW	0x61
+#define GAME_BUTTON_GREEN   0x77
+#define GAME_BUTTON_RED     0x64
+#define GAME_BUTTON_BLUE    0x73
 #define GAME_BUTTON_LEFT    'h'
 #define GAME_BUTTON_RIGHT   'k'
 #define GAME_BUTTON_UP      'u'
@@ -177,6 +179,8 @@ void game_start_screen() {
 		}
 		if (game_button_is_down(0, GAME_BUTTON_START)) {
 			game_state = GAME_STATE_TURN;
+			game_p1_score = 0;
+			game_p2_score = 0;
 			game_round_initialize();
 			break;
 		}
@@ -192,14 +196,24 @@ void game_player_turn() {
 	uint8_t input, move;
 	while (current_move <= game_move_buffer_count && game_winner == GAME_PLAYER_NONE) {
 		task_update();
-		input = getchar();
 		move = GAME_MOVE_NONE;
-		switch (input) {
-			case GAME_BUTTON_RED: move = GAME_MOVE_RED; break;
-			case GAME_BUTTON_BLUE: move = GAME_MOVE_BLUE; break;
-			case GAME_BUTTON_GREEN: move = GAME_MOVE_GREEN; break;
-			case GAME_BUTTON_YELLOW: move = GAME_MOVE_YELLOW; break;
+		
+		// TODO: Use game_button_is_down
+		if (kb_haschar()) {
+			char input = kb_getchar();
+			switch (input) {
+				case GAME_BUTTON_RED: move = GAME_MOVE_RED; break;
+				case GAME_BUTTON_BLUE: move = GAME_MOVE_BLUE; break;
+				case GAME_BUTTON_GREEN: move = GAME_MOVE_GREEN; break;
+				case GAME_BUTTON_YELLOW: move = GAME_MOVE_YELLOW; break;
+			}
 		}
+		
+		//if (game_button_is_down(game_turn, GAME_BUTTON_RED)) {move = GAME_MOVE_RED;}
+		//else if (game_button_is_down(game_turn, GAME_BUTTON_BLUE)) {move = GAME_MOVE_BLUE;}
+		//else if (game_button_is_down(game_turn, GAME_BUTTON_GREEN)) {move = GAME_MOVE_GREEN;}
+		//else if (game_button_is_down(game_turn, GAME_BUTTON_YELLOW)) {move = GAME_MOVE_YELLOW;}
+		//
 		if (move != GAME_MOVE_NONE && current_move < game_move_buffer_count) {
 			// Compare move to existing moves
 			if (move != game_get_move(current_move++)) {
@@ -215,7 +229,7 @@ void game_player_turn() {
 			task_reset(timeout_timer);
 		}
 		
-		if (move) {
+		if (move != GAME_MOVE_NONE) {
 			game_set_led(move);
 		}
 	}
@@ -396,7 +410,14 @@ void game_light_flicker() {
 }
 
 uint8_t game_button_is_down(uint8_t player, uint8_t button) {
-	return getchar() == button;
+	unsigned char c;
+	if (kb_haschar()) {
+		c = kb_getchar();
+		pt_set_cursor_pos(2, 8);
+		printf("%c", c);
+		return ((uint8_t)c == button ? 1 : 0);
+	}
+	return 0;
 }
 
 // Sets which LEDs should be enabled
