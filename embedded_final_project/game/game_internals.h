@@ -82,9 +82,10 @@
 void game_set_led(uint8_t move);
 void game_set_leds(uint8_t leds);
 void game_print_lcd_border();
-void game_print_scores();
+void game_print_scores(char* buffer);
 void game_clear_screen();
 void game_print_lcd(uint8_t x, uint8_t y, char* string);
+void game_print_buffer(char* buffer, uint8_t x, uint8_t y, char* string);
 //void game_increment_page();
 //void game_light_flicker();
 //void game_turn_timeout();

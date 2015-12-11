@@ -19,7 +19,7 @@ void turn_begin() {
 	
 }
 
-void turn_render() {
+void turn_render(char* buffer) {
 	
 }
 

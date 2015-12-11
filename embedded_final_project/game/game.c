@@ -35,6 +35,8 @@ uint8_t game_winner = GAME_PLAYER_NONE;
 
 // Game's entry point
 void game_run() {
+	
+	// Prepare output ports
 	PORT_OUTPUT(GAME_LED_RED);
 	PORT_OUTPUT(GAME_LED_BLUE);
 	PORT_OUTPUT(GAME_LED_GREEN);
@@ -42,6 +44,7 @@ void game_run() {
 	
 	PORT_OUTPUT(LED_STATUS);
 	
+	// reset screen and leds
 	pt_clear_screen();
 	pt_set_color_modifier(COLOR_RESET_ALL);
 	pt_set_color_modifier(FORE(RED));
@@ -50,10 +53,13 @@ void game_run() {
 	game_set_leds(0);
 	game_clear_screen();
 	
+	// Set the first screen to display
 	screen_set_current(GAME_SCREEN_BEGIN);
 	
+	// Set the tick-rate (render / update rate) to 17ms
 	uint8_t tick_task = task_create(game_tick, 17, 1);
 	
+	// Main program loop
 	while (1) {
 		task_update();
 		// audio update
@@ -440,18 +446,19 @@ void game_print_lcd_border() {
 }
 
 // Prints the scoreboard on the screen
-void game_print_scores() {
+void game_print_scores(char* buffer) {
 	char num[4];
 	
-	game_clear_screen();
+	memset(buffer, ' ', 32);
 	
 	itoa(game_p1_score, num, 10);
-	game_print_lcd(0, 0, "  Player 1: ");
-	game_print_lcd(12, 0, num);
+	game_print_buffer(buffer, 0, 0, "  Player 1: ");
+	game_print_buffer(buffer, 12, 0, num);
 	
 	itoa(game_p2_score, num, 10);
-	game_print_lcd(0, 1, "  Player 2: ");
-	game_print_lcd(12, 1, num);
+	game_print_buffer(buffer, 0, 1, "  Player 2: ");
+	game_print_buffer(buffer, 12, 1, num);
+	
 }
 
 // Clears the LCD screen
@@ -462,10 +469,23 @@ void game_clear_screen() {
 	
 }
 
+// Prints a string to the buffer provided
+void game_print_buffer(char* buffer, uint8_t x, uint8_t y, char* string) {
+	memcpy(buffer + ((y * 16) + x), string, strlen(string));
+}
+
 // Print a string to the screen
 void game_print_lcd(uint8_t x, uint8_t y, char* string) {
 	
+	// Set the draw position on the screen
 	pt_set_cursor_pos(x + 2, y + 1);
-	printf("%s", string);
+	
+	// Create a new base string that is 17 characters long and fill with null terminators
+	char str_to_print[17];
+	memset(str_to_print, 0, 17);
+	
+	// copy the first 16 characters from the input string and put them into the printed string
+	memcpy(str_to_print, string, 16);
+	printf("%s", str_to_print);
 	
 }

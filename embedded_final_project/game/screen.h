@@ -49,7 +49,7 @@ typedef struct {
 	void (*init)();
 	void (*begin)();
 	void (*update)();
-	void (*render)();
+	void (*render)(char* buffer);
 	void (*stop)();
 	void (*destroy)();
 	uint8_t state;
@@ -58,7 +58,7 @@ typedef struct {
 // Functions
 uint8_t screen_init(Screen* s);
 uint8_t screen_begin(Screen* s);
-uint8_t screen_render(Screen* s);
+uint8_t screen_render(Screen* s, char* buffer);
 uint8_t screen_update(Screen* s);
 uint8_t screen_stop(Screen* s);
 uint8_t screen_destroy(Screen* s);

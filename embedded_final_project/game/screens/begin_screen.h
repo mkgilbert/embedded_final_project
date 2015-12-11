@@ -16,7 +16,7 @@ void ticker_tick();
 
 void begin_init();
 void begin_begin();
-void begin_render();
+void begin_render(char* buffer);
 void begin_update();
 void begin_stop();
 void begin_destroy();
