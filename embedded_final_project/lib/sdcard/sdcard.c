@@ -1,12 +1,9 @@
 #include "system.h"
+#include <avr/io.h>
+#include <util/delay.h>
 #include "lib/port_helpers/port_helpers.h"
 #include "lib/spi/spi.h"
 #include "sdcard.h"
-#include "lib/uart/uart.h"
-#include <avr/io.h>
-#include <stdio.h>
-#include <util/delay.h>
-#include <string.h>
 
 int8_t sd_init() {
 	PORT_OUTPUT (SD_CS);

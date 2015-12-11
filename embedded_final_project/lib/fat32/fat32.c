@@ -1,8 +1,6 @@
 #include "fat32.h"
 #include "lib/sdcard/sdcard.h"
 #include "system.h"
-#include "lib/uart/uart.h"
-#include "lib/print_tools/colors.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -25,8 +23,8 @@ void fat32_file_init(fat32_file_t * file){
     // Set the default state
     file->state = FAT32_STATE_EMPTY;
     // Ensure everything is empty
-    bzero(file->dir_name, 12);
-    bzero(file->long_fname, 64);
+	memset(file->dir_name, 12, 0);
+	memset(file->long_fname, 32, 0);
     file->size = 0x00;
     file->first_cluster = 0x00;
     file->attrs = 0x00;
@@ -193,9 +191,6 @@ void fat32_file_lookup(fat32_file_t * file, char * fname){
 }
 
 void fat32_read_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset){
-    
-    bzero(buffer, length);
-    
     // Create a shortcut to the partition we're working with
     fat32_partition_t * partition = &current_disk.partition;
     uint32_t sector = (offset/512) % partition->sectors_per_cluster;
