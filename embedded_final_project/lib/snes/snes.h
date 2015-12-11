@@ -18,21 +18,21 @@
 #define SNES_DATA2_PORT A
 #define SNES_DATA2_PIN 4
 
-#define SNES_BTN_B 1 
-#define SNES_BTN_Y 2
-#define SNES_BTN_SELECT 3
-#define SNES_BTN_START 4
-#define SNES_BTN_UP 5
-#define SNES_BTN_DOWN 6
-#define SNES_BTN_LEFT 7
-#define SNES_BTN_RIGHT 8
-#define SNES_BTN_A 9
-#define SNES_BTN_X 10
-#define SNES_BTN_L 11
-#define SNES_BTN_R 12
+#define SNES_BTN_B 0
+#define SNES_BTN_Y 1
+#define SNES_BTN_SELECT 2
+#define SNES_BTN_START 3
+#define SNES_BTN_UP 4
+#define SNES_BTN_DOWN 5
+#define SNES_BTN_LEFT 6
+#define SNES_BTN_RIGHT 7
+#define SNES_BTN_A 8
+#define SNES_BTN_X 9
+#define SNES_BTN_L 10
+#define SNES_BTN_R 11
 
-#define SNES_CTRL1 1
-#define SNES_CTRL2 2
+#define SNES_CONTROLLER1 1
+#define SNES_CONTROLLER2 2
 
 uint8_t snes_is_pressed(uint8_t controller, uint8_t button);
 void snes_init();

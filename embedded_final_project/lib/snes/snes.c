@@ -17,10 +17,10 @@ uint16_t data_c1;
 uint16_t data_c2;
 
 uint8_t snes_is_pressed(uint8_t controller, uint8_t button){
-	if (controller == SNES_CTRL1){
+	if (controller == SNES_CONTROLLER1){
 		return data_c1 & (1<<button) > 0;
 	}
-	else if (controller == SNES_CTRL2){
+	else if (controller == SNES_CONTROLLER2){
 		return data_c2 & (1<<button) > 0;
 	}
 	return 0;
@@ -61,11 +61,8 @@ void snes_update(){
 		
 		PORT_SET (SNES_CLOCK);
 		_delay_us(6);
-		
 	}
 	
 	data_c1 = ~data_c1;
 	data_c2 = ~data_c2;
-	
-	printf("C1: 0x%04X C2: 0x%04X \n", data_c1, data_c2);
 }
