@@ -92,7 +92,7 @@ void task_delete(uint8_t id) {
 	for (i = 0; i < num_tasks; i++) {
 		t = &tasks[i];
 		if (t->uid == id) {
-			found_index = id;
+			found_index = i;
 			break;
 		}
 	}
