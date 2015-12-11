@@ -15,8 +15,8 @@
 
 #define LCD_REGISTER DDRC
 #define LCD_PORT PORTC
-#define LCD_RS PA6		// RS (read/write pin)
-#define LCD_EN PA7		// EN (enable signal pin)
+#define LCD_RS PA7		// RS (read/write pin)
+#define LCD_EN PA6		// EN (enable signal pin)
 #define LCD_DB4 PC4	// DB4-DB7 (data bus pins for sending data to lcd screen)
 #define LCD_DB5 PC5
 #define LCD_DB6 PC6
