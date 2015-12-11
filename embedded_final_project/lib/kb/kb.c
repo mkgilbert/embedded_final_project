@@ -15,15 +15,15 @@
 uint8_t volatile edge, bitcount;
 uint8_t volatile data, is_up = 0, shift = 0, mode = 0;
 
-unsigned char volatile buffer[20];
+unsigned char volatile buffer[KB_BUFFER_SIZE];
 unsigned char* volatile buffer_in;
 unsigned char* volatile buffer_out;
 uint8_t volatile buffer_cnt;
 
 void kb_init() {
 	
-	PCICR |= (1 << PCIE1);
-	PCMSK1 = (1 << PCINT8);
+	PCICR |= (1 << KB_PCIE);
+	KB_PCMSK = (1 << KB_INTERRUPT);
 	
 	edge = 0;
 	bitcount = 11;
@@ -37,12 +37,12 @@ void kb_init() {
 }
 
 void kb_putchar(unsigned char c) {
-	if (buffer_cnt < 20) {
+	if (buffer_cnt < KB_BUFFER_SIZE) {
 		*(buffer_in++) = c;
 		buffer_cnt++;
 		
 		// Wrap pointer
-		if (buffer_in >= buffer + 20)
+		if (buffer_in >= buffer + KB_BUFFER_SIZE)
 			buffer_in = buffer;
 	}
 }
@@ -58,7 +58,7 @@ unsigned char kb_getchar() {
 	
 	byte = *(buffer_out++);
 	
-	if (buffer_out >= buffer + 20)
+	if (buffer_out >= buffer + KB_BUFFER_SIZE)
 		buffer_out = buffer;
 	
 	buffer_cnt--;
@@ -122,7 +122,7 @@ void kb_decode(unsigned char data) {
 	}
 }
 
-ISR(PCINT1_vect) {
+ISR(KB_PCINT_VECT) {
 	if (!edge) {
 		// Falling edge - read data
 		edge = 1;

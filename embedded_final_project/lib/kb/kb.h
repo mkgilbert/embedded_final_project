@@ -19,6 +19,7 @@
 #define KB_PCIE PCIE1
 #define KB_PCMSK PCMSK1
 #define KB_PCINT_VECT PCINT1_vect
+#define KB_BUFFER_SIZE 20
 
 void kb_init();
 unsigned char kb_getchar();
