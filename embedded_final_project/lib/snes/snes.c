@@ -18,10 +18,10 @@ uint16_t data_c2;
 
 uint8_t snes_is_pressed(uint8_t controller, uint8_t button){
 	if (controller == SNES_CONTROLLER1){
-		return data_c1 & (1<<button) > 0;
+		return (data_c1 & (1<<button)) > 0;
 	}
 	else if (controller == SNES_CONTROLLER2){
-		return data_c2 & (1<<button) > 0;
+		return (data_c2 & (1<<button)) > 0;
 	}
 	return 0;
 }
