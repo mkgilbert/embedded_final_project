@@ -9,19 +9,28 @@
 #ifndef LCD_H
 #define LCD_H
 
-#define LCD_PORT PORTC		// lcd will connect to register C
-#define LCD_RS _BV(PC0)		// RS (read/write pin)
-#define LCD_EN _BV(PC1)		// EN (enable signal pin)
-#define LCD_DB4 _BV(PC4)	// DB4-DB7 (data bus pins for sending data to lcd screen)
-#define LCD_DB5 _BV(PC5)
-#define LCD_DB6 _BV(PC6)
-#define LCD_DB7 _BV(PC7)
+#include <stdint.h>
+#include <avr/io.h>
+#include <util/delay.h>
+
+#define LCD_REGISTER DDRC
+#define LCD_PORT PORTC
+#define LCD_RS PC0		// RS (read/write pin)
+#define LCD_EN PC1		// EN (enable signal pin)
+#define LCD_DB4 PC4	// DB4-DB7 (data bus pins for sending data to lcd screen)
+#define LCD_DB5 PC5
+#define LCD_DB6 PC6
+#define LCD_DB7 PC7
+#define LCD_SET_RS() (LCD_PORT |= (1<<LCD_RS))		// turn on RS
+#define LCD_UNSET_RS() (LCD_PORT &= ~(1<<LCD_RS))	// turn off RS
+#define LCD_SET_EN() (LCD_PORT |= (1<<LCD_EN))		// turn on EN
+#define LCD_UNSET_EN() (LCD_PORT &= ~(1<<LCD_EN))		// turn off EN
 
 void lcd_init();				// initialize lcd
 void lcd_set_bits(uint8_t hex_value);	// simply changes LCD_PORT pins according to hex value
 void lcd_cmd(uint8_t hex_value);	// send lcd one of the commands as listed on the datasheet
 void lcd_clear();				// clears display
 void lcd_print(uint8_t x, uint8_t y, char *str);	// prints str starting at position (x,y)
-
+void lcd_write_char(uint8_t c);
 
 #endif
