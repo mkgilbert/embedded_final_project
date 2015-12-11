@@ -1,21 +1,21 @@
+#include "system.h"
 #include <avr/io.h>
-#include <stdio.h>
+#include "lib/port_helpers/port_helpers.h"
 #include "spi.h"
 
 void spi_init (void) {
-    CS_DDR |= CS; // Set CS as an output
-    SPI_DDR |= MOSI | SCK; // Set MOSI and SCK as outputs
-    SPI_PORT |= MISO; // pullup in MISO, might not be needed
+	// Set CS, MOSI, and SCK as outputs
+	PORT_OUTPUT (SPI_MOSI);
+	PORT_OUTPUT (SPI_SCK);
+	
+	// Set MISO as an input and enable the pull-up resistor
+	PORT_INPUT (SPI_MISO);
+	PORT_SET (SPI_MISO);
 
-    //SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0) | (1 << SPR1);
+	// Enable the SPI interrupts and set this device as master
+	// Note: This runs SPI at F_CPU/4
+	
     SPCR = (1 << SPE) | (1 << MSTR);
-    
-    char i;
-    
-    // ]r:10
-    CS_DISABLE();
-    for(i=0; i<10; i++) // idle for 1 bytes / 80 clocks
-        spi_rxtx(0xFF);
 }
 
 //TX to slave device AND RX from slave AT SAME TIME (same function for

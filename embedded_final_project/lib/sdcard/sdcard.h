@@ -20,12 +20,10 @@
 #define SD_WRITE_SINGLE_BLOCK 0x18
 
 #define SD_COMMAND_LEN 6
-#define SD_RW_WAIT_RETRIES 16384
+#define SD_RW_WAIT_RETRIES 65535
 
-#define SD_STATE_NOT_INITIALIZED 0x00
-#define SD_STATE_IDLE 0x01
-#define SD_STATE_COMMAND_READY 0x02
-#define SD_STATE_BUSY 0x03
+#define SD_CS_PORT B
+#define SD_CS_PIN 4
 
 #define parse_uint8(X)   (((uint8_t)(X)[0]))
 #define parse_uint16(X)  ((((uint16_t)(X)[1]) << 8) | (((uint16_t)(X)[0])))

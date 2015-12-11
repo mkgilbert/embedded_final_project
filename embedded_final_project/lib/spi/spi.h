@@ -2,16 +2,17 @@
 #define SPI_H
 
 /* Preprocessor directives */
-#define CS_ENABLE() (PORTB &= ~CS)
-#define CS_DISABLE() (PORTB |= CS)
-#define CS (1 << PB4)
-#define MOSI (1 << PB5)
-#define MISO (1 << PB6)
-#define SCK (1 << PB7)
-#define CS_DDR DDRB
-#define CS_PORT PORTB
-#define SPI_DDR DDRB
-#define SPI_PORT PORTB
+#define CS_ENABLE(PRT) (PORT_UNSET(PRT))
+#define CS_DISABLE(PRT) (PORT_SET(PRT))
+
+#define SPI_MOSI_PORT B
+#define SPI_MOSI_PIN 5
+
+#define SPI_MISO_PORT B
+#define SPI_MISO_PIN 6
+
+#define SPI_SCK_PORT B
+#define SPI_SCK_PIN 7
 
 void spi_init (void);
 unsigned char spi_rxtx (unsigned char data);
