@@ -39,7 +39,7 @@ typedef struct _fat32_file {
     uint8_t attrs;
     uint32_t first_cluster;
     uint32_t size;
-    char long_fname[64];
+    char long_fname[32];
     uint8_t state;
 	uint32_t previous_cluster;
 	uint16_t clusters_read;
@@ -59,5 +59,6 @@ void fat32_read_partition();
 void fat32_read_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset);
 void fat32_get_root(fat32_file_t * file);
 void fat32_write_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset);
+void fat32_file_lookup(fat32_file_t * file, char * fname);
 
 #endif /* !FAT32_H */

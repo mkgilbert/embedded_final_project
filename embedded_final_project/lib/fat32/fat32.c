@@ -19,7 +19,6 @@ void fat32_disk_init(fat32_disk_t * disk){
     disk->state = FAT32_STATE_EMPTY;
     // Ensure that the partitions are initialized
     fat32_partition_init(&(disk->partition));
-	fat32_read_partition();
 }
 
 void fat32_file_init(fat32_file_t * file){
@@ -66,9 +65,7 @@ void fat32_read_partition(){
     // Read the partition table
     //TODO: Abstract away SD_read
     sd_read(0, 446, buffer, 16);
-	
-	uart_print_buffer(&buffer, 64, 16);
-    
+	    
     // Grab the beginning of the Volume ID
     partition->lba_begin = fat32_parse_uint32(buffer + 8);
     // Grab the type code of the partition
@@ -83,9 +80,7 @@ void fat32_read_partition(){
     
     //TODO: Abstract away SD_read
     sd_read(partition->lba_begin, 0, buffer, 64);
-	
-	uart_print_buffer(&buffer, 64, 16);
-    
+	   
     partition->num_reserved_sectors = fat32_parse_uint16(buffer + 0x0E);
     partition->num_fats = fat32_parse_uint8(buffer + 0x10);
     partition->sectors_per_fat = fat32_parse_uint32(buffer + 0x24);
@@ -214,6 +209,12 @@ void fat32_read_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length
 
     uint8_t fat_buffer[4];
 	
+	if (offset / (partition->sectors_per_cluster * 512) < file->clusters_read){
+		file->previous_cluster = 0;
+		cluster = file->first_cluster;
+		file->clusters_read = 0;
+	}
+
 	while(offset / (partition->sectors_per_cluster * 512) > file->clusters_read){
         sd_read(partition->fat_begin_lba + cluster/128, (cluster % 128) * 4, fat_buffer, 4);
         cluster = fat32_parse_uint32(fat_buffer);
