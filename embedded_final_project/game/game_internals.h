@@ -59,6 +59,7 @@
 // #define GAME_STATE_ROUNDOVER	5
 #define GAME_SCREEN_BEGIN      begin
 #define GAME_SCREEN_PLAYERTURN turn
+#define GAME_SCREEN_PLAYBACK   playback
 
 // Game Configuration Settings
 #define GAME_MAX_MOVES 256
@@ -71,6 +72,8 @@
 // Players 1 and 2, including the ability to select no player
 #define GAME_PLAYER_1 0
 #define GAME_PLAYER_2 1
+#define GAME_PLAYER_1_STR "1"
+#define GAME_PLAYER_2_STR "2"
 #define GAME_PLAYER_NONE 2
 
 // Internal Prototypes
@@ -89,7 +92,11 @@ void game_print_buffer(char* buffer, uint8_t x, uint8_t y, char* string);
 //void game_increment_page();
 //void game_light_flicker();
 //void game_turn_timeout();
-//void game_round_initialize();
+uint8_t game_get_turn();
+void game_advance_turn();
+void game_reset_scores();
+uint8_t game_get_move_count();
+void game_round_initialize();
 void game_set_move(uint8_t move, uint8_t pos);
 uint8_t game_get_move(uint8_t pos);
 uint8_t game_button_is_down(uint8_t player, uint8_t button);

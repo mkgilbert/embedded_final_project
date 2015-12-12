@@ -9,6 +9,8 @@
 #ifndef TURN_SCREEN_H_
 #define TURN_SCREEN_H_
 
+#define TURN_SCREEN_PLAY_TIME GAME_MOVE_TIMEOUT
+
 void turn_init();
 void turn_begin();
 void turn_render(char* buffer);

@@ -116,37 +116,7 @@ void game_tick() {
 		//}
 	//}
 //}
-//
-//// Pre-game start screen
-//void game_start_screen() {
-	//game_number_pages = 2;
-	//uint8_t page_scroll_task = task_create(game_increment_page, GAME_PAGE_SCROLL_SPEED, 1);
-	//while (1) {
-		//task_update();
-		//if (game_page_scroll_accumulator != game_page_scroll_accumulator_prev) {
-			//game_page_scroll_accumulator_prev = game_page_scroll_accumulator;
-			//game_clear_screen();
-			//switch(game_page_scroll_accumulator) {
-				//case 0:
-				//game_print_scores();
-				//break;
-				//case 1:
-				//game_print_lcd(0, 0, "Welcome to Simon");
-				//game_print_lcd(0, 1, " P1 Press Start ");
-				//break;
-			//}
-		//}
-		//if (game_button_is_down(0, GAME_BUTTON_START)) {
-			//game_state = GAME_STATE_TURN;
-			//game_p1_score = 0;
-			//game_p2_score = 0;
-			//game_round_initialize();
-			//break;
-		//}
-	//}
-	//task_delete(page_scroll_task);
-//}
-//
+
 //void game_player_turn() {
 	//game_print_scores();
 	//game_print_lcd(1, game_turn, ">");
@@ -212,13 +182,6 @@ void game_tick() {
 	//}
 	//task_delete(timeout_timer);
 	//
-//}
-//void game_turn_timeout() {
-	//if (game_turn == GAME_PLAYER_1) {
-		//game_winner = GAME_PLAYER_2;
-	//} else {
-		//game_winner = GAME_PLAYER_1;
-	//}
 //}
 //
 //void game_playback() {
@@ -326,13 +289,30 @@ void game_tick() {
 	//task_delete(light_flicker_task);
 	//
 //}
-//
-//void game_round_initialize() {
-	//memset(game_move_buffer, 0, GAME_MAX_MOVES / 4);
-	//game_move_buffer_count = 0;
-	//game_turn = GAME_PLAYER_1;
-	//game_winner = GAME_PLAYER_NONE;
-//}
+
+void game_round_initialize() {
+	memset(game_move_buffer, 0, GAME_MAX_MOVES / 4);
+	game_move_buffer_count = 0;
+	game_turn = GAME_PLAYER_1;
+	game_winner = GAME_PLAYER_NONE;
+}
+
+void game_reset_scores() {
+	game_p1_score = 0;
+	game_p2_score = 0;
+}
+
+uint8_t game_get_turn() {
+	return game_turn;
+}
+
+void game_advance_turn() {
+	if (game_turn == GAME_PLAYER_1) {
+		game_turn = GAME_PLAYER_2;
+	} else {
+		game_turn = GAME_PLAYER_1;
+	}
+}
 
 void game_set_move(uint8_t move, uint8_t pos) {
 	uint8_t slot = pos / 4;
@@ -349,6 +329,10 @@ uint8_t game_get_move(uint8_t pos) {
 	
 	uint8_t mask = 0b11;
 	return (game_move_buffer[slot] & (mask << pos)) >> pos;
+}
+
+uint8_t game_get_move_count() {
+	return game_move_buffer_count;
 }
 
 //// Increments the page scroll accumulator
