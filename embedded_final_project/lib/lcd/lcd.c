@@ -12,9 +12,9 @@ void _lcd_cmd(uint8_t hex_value){
 	LCD_UNSET_RS();				// turn off RS pin
 	LCD_PORT = hex_value;		// send data to lcd
 	LCD_SET_EN();				// turn on EN pin
-	_delay_ms(20);
+	_delay_ms(2);
 	LCD_UNSET_EN();				// turn EN pin back off
-	_delay_ms(5);
+	_delay_us(10);
 }
 
 /************************************************************************/
@@ -80,9 +80,9 @@ void lcd_write_char(char c){
 	LCD_PORT = c;
 	LCD_SET_RS();
 	LCD_SET_EN();
-	_delay_ms(5);
+	_delay_us(30);
 	LCD_UNSET_EN();
-	_delay_ms(1);
+	_delay_us(10);
 }
 
 /************************************************************************/
