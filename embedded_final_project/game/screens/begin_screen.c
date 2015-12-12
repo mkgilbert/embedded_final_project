@@ -13,7 +13,7 @@
 #include "../game_internals.h"
 #include "lib/tasks/tasks.h"
 
-uint8_t ticker_task, page = 0, request_render = 0;
+uint8_t ticker_task, page = 0;
 
 void begin_init() {
 	// Set the display page to 0
@@ -33,7 +33,8 @@ void begin_render(char* buffer) {
 			break;
 		case 1:
 			game_print_buffer(buffer, 0, 0, "Welcome to Simon");
-			game_print_buffer(buffer, 0, 1, " P1 Press Start ");
+			game_print_buffer(buffer, 0, 1, " PX Press Start ");
+			game_print_buffer(buffer, 2, 1, GAME_PLAYER_1_STR);
 			break;
 	}
 }
@@ -43,11 +44,8 @@ void begin_update() {
 	// If so, start the game and transition to the next screen.
 	if (game_button_is_down(GAME_PLAYER_1, GAME_BUTTON_START)) {
 		screen_transition_next(GAME_SCREEN_PLAYERTURN, SCREEN_TRANSITION_NONE, 0);
-		//Screen next = {0};
-		//screen_fill(next, turn);
-// 		game_p1_score = 0;
-// 		game_p2_score = 0;
-// 		game_round_initialize();
+		game_reset_scores();
+ 		game_round_initialize();
 	}
 }
 
