@@ -23,8 +23,8 @@ void fat32_file_init(fat32_file_t * file){
     // Set the default state
     file->state = FAT32_STATE_EMPTY;
     // Ensure everything is empty
-	memset(file->dir_name, 12, 0);
-	memset(file->long_fname, 32, 0);
+	memset(file->dir_name, 0, 12);
+	memset(file->long_fname, 0, 32);
     file->size = 0x00;
     file->first_cluster = 0x00;
     file->attrs = 0x00;
@@ -190,40 +190,69 @@ void fat32_file_lookup(fat32_file_t * file, char * fname){
     return;
 }
 
+uint32_t fat32_find_next_cluster(uint32_t previous_cluster){
+	uint8_t buffer[4];
+    sd_read(current_disk.partition.fat_begin_lba + previous_cluster/128, (previous_cluster % 128) * 4, buffer, 4);
+    return fat32_parse_uint32(buffer);
+}
+
+void fat32_read(uint8_t * buffer, uint32_t cluster, uint8_t sector, uint16_t offset, uint16_t length){
+	sd_read(current_disk.partition.cluster_begin_lba + (cluster - 2) * current_disk.partition.sectors_per_cluster + sector, offset % 512, buffer, length);
+}
+
 void fat32_read_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset){
-    // Create a shortcut to the partition we're working with
-    fat32_partition_t * partition = &current_disk.partition;
-    uint32_t sector = (offset/512) % partition->sectors_per_cluster;
-    uint32_t cluster = file->first_cluster;
-	
-	if (file->previous_cluster != 0){
-		cluster = file->previous_cluster;
-	}
-    
-    offset -= sector * 512;
+	uint8_t sector;
+	uint32_t cluster;
+	uint32_t position = 0;
+	uint32_t position_old = 0;
+	uint32_t sector_offset;
+		
+	while (position != length){
+		position_old = position;
+		sector_offset = offset + position;
+		
+		// Calculate the sector in a cluster that we're looking at 
+		sector = (sector_offset/512) % current_disk.partition.sectors_per_cluster;
+		
+		// Grab the the previous cluster or the first cluster depending on if 
+		// we've read from this file before or not
+		if (file->previous_cluster != 0)
+			cluster = file->previous_cluster;
+		else
+			cluster = file->first_cluster;
+		
+		// Remove the number of bytes that account for the sector we're looking for
+		sector_offset -= sector * 512;
+		
+		// See if we can use our linear reading shortcut, if we can't then reset the last_cluster
+		if (sector_offset / (current_disk.partition.sectors_per_cluster * 512) < file->clusters_read){
+			file->previous_cluster = 0;
+			cluster = file->first_cluster;
+			file->clusters_read = 0;
+		}
 
-    uint8_t fat_buffer[4];
-	
-	if (offset / (partition->sectors_per_cluster * 512) < file->clusters_read){
-		file->previous_cluster = 0;
-		cluster = file->first_cluster;
-		file->clusters_read = 0;
+		// Find the correct cluster that we should be looking at and keep track of it in case we're
+		// doing linear reading.
+		while(sector_offset / (current_disk.partition.sectors_per_cluster * 512) > file->clusters_read){
+			// Find the next cluster until we find the next one
+			cluster = fat32_find_next_cluster(cluster);
+			file->clusters_read++;
+			file->previous_cluster = cluster;
+		}
+		
+		sector_offset -= file->clusters_read * current_disk.partition.sectors_per_cluster * 512;
+		
+		if ((length - position) > 512){
+			position += 512 - sector_offset;
+		}
+		else {
+			position += length;
+		}
+		
+		fat32_read(buffer + position_old, cluster, sector, sector_offset, position % 512);
 	}
 
-	while(offset / (partition->sectors_per_cluster * 512) > file->clusters_read){
-        sd_read(partition->fat_begin_lba + cluster/128, (cluster % 128) * 4, fat_buffer, 4);
-        cluster = fat32_parse_uint32(fat_buffer);
-		file->clusters_read++;
-		file->previous_cluster = cluster;
-	}
-    
-    if (file->size < length){
-        length = file->size;
-    }
-
-    sd_read(partition->cluster_begin_lba + (cluster - 2) * partition->sectors_per_cluster + sector, offset % 512, buffer, length);
-	
-    return;
+	return;
 }
 
 void fat32_write_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset){

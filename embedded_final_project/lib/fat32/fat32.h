@@ -60,5 +60,6 @@ void fat32_read_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length
 void fat32_get_root(fat32_file_t * file);
 void fat32_write_file_data(fat32_file_t * file, uint8_t * buffer, uint32_t length, uint32_t offset);
 void fat32_file_lookup(fat32_file_t * file, char * fname);
-
+uint32_t fat32_find_next_cluster(uint32_t previous_cluster);
+void fat32_read(uint8_t * buffer, uint32_t cluster, uint8_t sector, uint16_t offset, uint16_t length);
 #endif /* !FAT32_H */
