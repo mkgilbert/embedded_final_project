@@ -9,11 +9,13 @@
 #ifndef GAME_INTERNALS_H_
 #define GAME_INTERNALS_H_
 
+#include "lib/snes/snes.h"
+
 // LED Ports and Pins
 #define GAME_LED_RED_PORT		D
 #define GAME_LED_RED_PIN		6
 #define GAME_LED_GREEN_PORT		D
-#define GAME_LED_GREEN_PIN		5
+#define GAME_LED_GREEN_PIN		3
 #define GAME_LED_YELLOW_PORT	D
 #define GAME_LED_YELLOW_PIN		4
 #define GAME_LED_BLUE_PORT		D
@@ -38,18 +40,18 @@
 #define GAME_MOVE_NONE		4
 
 // Game buttons
-#define GAME_BUTTON_YELLOW	'a'
-#define GAME_BUTTON_GREEN   'w'
-#define GAME_BUTTON_RED     'd'
-#define GAME_BUTTON_BLUE    's'
-#define GAME_BUTTON_LEFT    'h'
-#define GAME_BUTTON_RIGHT   'k'
-#define GAME_BUTTON_UP      'u'
-#define GAME_BUTTON_DOWN    'j'
-#define GAME_BUTTON_START   'z'
-#define GAME_BUTTON_SELECT  'x'
-#define GAME_BUTTON_LB      '1'
-#define GAME_BUTTON_RB      '2'
+#define GAME_BUTTON_YELLOW	SNES_BTN_Y
+#define GAME_BUTTON_GREEN   SNES_BTN_X
+#define GAME_BUTTON_RED     SNES_BTN_A
+#define GAME_BUTTON_BLUE    SNES_BTN_B
+#define GAME_BUTTON_LEFT    SNES_BTN_LEFT
+#define GAME_BUTTON_RIGHT   SNES_BTN_RIGHT
+#define GAME_BUTTON_UP      SNES_BTN_UP
+#define GAME_BUTTON_DOWN    SNES_BTN_DOWN
+#define GAME_BUTTON_START   SNES_BTN_START
+#define GAME_BUTTON_SELECT  SNES_BTN_SELECT
+#define GAME_BUTTON_LB      SNES_BTN_L
+#define GAME_BUTTON_RB      SNES_BTN_R
 
 // Game States
 // #define GAME_STATE_BEGIN		0

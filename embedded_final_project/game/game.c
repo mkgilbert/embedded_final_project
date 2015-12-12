@@ -19,7 +19,9 @@
 #include "lib/print_tools/colors.h"
 #include "lib/print_tools/print_tools.h"
 #include "lib/port_helpers/port_helpers.h"
+#include "lib/audio/audio.h"
 #include "lib/kb/kb.h"
+#include "lib/snes/snes.h"
 
 // Global variables
 uint8_t game_p1_score = 0, game_p2_score = 0;
@@ -62,12 +64,12 @@ void game_run() {
 	// Main program loop
 	while (1) {
 		task_update();
-		// audio update
+		audio_update();
 	}
 }
 
 void game_tick() {
-	// snes update
+	snes_update();
 	screen_tick();
 }
 
@@ -369,14 +371,15 @@ uint8_t game_get_move(uint8_t pos) {
 //}
 
 uint8_t game_button_is_down(uint8_t player, uint8_t button) {
-	unsigned char c;
-	if (kb_haschar()) {
+//	unsigned char c;
+	/*if (kb_haschar()) {
 		c = kb_getchar();
 		pt_set_cursor_pos(2, 8);
 		printf("%c", c);
 		return ((uint8_t)c == button ? 1 : 0);
-	}
-	return 0;
+	}*/
+	return snes_is_pressed(SNES_CONTROLLER1, button);
+//	return 0;
 }
 
 // Sets which LEDs should be enabled
@@ -487,5 +490,6 @@ void game_print_lcd(uint8_t x, uint8_t y, char* string) {
 	// copy the first 16 characters from the input string and put them into the printed string
 	memcpy(str_to_print, string, 16);
 	printf("%s", str_to_print);
+	lcd_print(0, x, y, str_to_print);
 	
 }
