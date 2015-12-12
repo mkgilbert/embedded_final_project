@@ -12,8 +12,6 @@
 #define BEGIN_SCREEN_TICKER_SPEED GAME_PAGE_SCROLL_SPEED
 #define BEGIN_SCREEN_NUMBER_PAGES 2
 
-void ticker_tick();
-
 void begin_init();
 void begin_begin();
 void begin_render(char* buffer);

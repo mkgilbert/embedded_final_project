@@ -13,21 +13,23 @@
 #include "../game_internals.h"
 #include "lib/tasks/tasks.h"
 
-uint8_t ticker_task, page = 0;
+uint8_t begin_ticker_task, begin_page = 0;
+
+void begin_ticker_tick();
 
 void begin_init() {
 	// Set the display page to 0
-	page = 0;
+	begin_page = 0;
 }
 
 void begin_begin() {
 	// Begin the page ticker
-	ticker_task = task_create(ticker_tick, BEGIN_SCREEN_TICKER_SPEED, 1);
+	begin_ticker_task = task_create(begin_ticker_tick, BEGIN_SCREEN_TICKER_SPEED, 1);
 }
 
 void begin_render(char* buffer) {
 	// Render the current page to the buffer
-	switch (page) {
+	switch (begin_page) {
 		case 0:
 			game_print_scores(buffer);
 			break;
@@ -51,7 +53,7 @@ void begin_update() {
 
 void begin_stop() {
 	// Clean up the ticker task
-	task_delete(ticker_task);
+	task_delete(begin_ticker_task);
 }
 
 void begin_destroy() {
@@ -59,7 +61,7 @@ void begin_destroy() {
 }
 
 
-void ticker_tick() {
+void begin_ticker_tick() {
 	// Advance the page
-	page = ++page % BEGIN_SCREEN_NUMBER_PAGES;
+	begin_page = ++begin_page % BEGIN_SCREEN_NUMBER_PAGES;
 }

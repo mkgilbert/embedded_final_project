@@ -216,9 +216,6 @@ void screen_advance() {
 	Screen x = {0};
 	next_screen = x;
 	
-	// Clear the lcd screen completely and immediately
-	game_clear_screen();
-	
 	// Begin the current screen, and render it
 	screen_begin(&current_screen);
 	screen_render(&current_screen, current_screen_buffer);
