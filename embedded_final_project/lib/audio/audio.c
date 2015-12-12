@@ -81,8 +81,9 @@ void audio_play(char* fname, uint8_t loop, uint8_t track){
 	
 	// Read the WAV file header information and ensure that it is a valid
 	uint8_t buffer[44];
+
 	fat32_read_file_data(&audio_files[track].file, buffer, 44, 0);
-	
+
 	if (fat32_parse_uint32(buffer + AUDIO_WAV_CHUNK_ID_POS) != AUDIO_WAV_CHUNK_ID_VAL ||
 		fat32_parse_uint32(buffer + AUDIO_WAV_FORMAT_POS) != AUDIO_WAV_FORMAT_VAL){
 		// This is not a valid WAV file, clear the file information from the track
@@ -102,13 +103,13 @@ void audio_play(char* fname, uint8_t loop, uint8_t track){
 }
 
 /************************************************************************/
-/* audio_step()                                              
+/* audio_update()                                              
    This streams in audio from the SD card into the appropriate buffers.
    This should be called whenever possible to load the buffers with new
    data before it needs to be sampled. Currently this takes around 2ms per
    audio file playing. However, this will vary depending on the buffer size.
 /************************************************************************/
-void audio_step(){
+void audio_update(){
   
 	int8_t i;
   

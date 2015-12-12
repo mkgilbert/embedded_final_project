@@ -43,7 +43,7 @@ typedef struct _audio_file {
 
 void audio_init(void);
 void audio_play(char* fname, uint8_t loop, uint8_t track);
-void audio_step();
+void audio_update();
 void audio_pause(uint8_t track);
 void audio_resume(uint8_t track);
 void audio_stop(uint8_t track);
