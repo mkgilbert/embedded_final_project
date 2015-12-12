@@ -9,14 +9,14 @@
 #ifndef SNES_H_
 #define SNES_H_
 
-#define SNES_CLOCK_PIN 1
+#define SNES_CLOCK_PIN 0
 #define SNES_CLOCK_PORT A
-#define SNES_LATCH_PIN 2
+#define SNES_LATCH_PIN 1
 #define SNES_LATCH_PORT A
-#define SNES_DATA1_PIN 3
+#define SNES_DATA1_PIN 2
 #define SNES_DATA1_PORT A
 #define SNES_DATA2_PORT A
-#define SNES_DATA2_PIN 4
+#define SNES_DATA2_PIN 3
 
 #define SNES_BTN_B 0
 #define SNES_BTN_Y 1

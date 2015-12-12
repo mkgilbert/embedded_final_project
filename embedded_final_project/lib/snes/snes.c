@@ -54,13 +54,13 @@ void snes_update(){
 	//read bits
 	for(int i = 0; i < 16; i++){
 		PORT_UNSET (SNES_CLOCK);
-		_delay_us(6);
+		//_delay_us(6);
 		
 		data_c1 |= (PORT_READ (SNES_DATA1) << i);
 		data_c2 |= (PORT_READ (SNES_DATA2) << i);
 		
 		PORT_SET (SNES_CLOCK);
-		_delay_us(6);
+		//_delay_us(6);
 	}
 	
 	data_c1 = ~data_c1;
