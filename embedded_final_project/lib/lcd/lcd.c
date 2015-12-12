@@ -60,6 +60,7 @@ void lcd_init(){
 	LCD_SET_EN();
 	_delay_ms(20);
 	
+	LCD_CURSOR_OFF();
 	lcd_clear();
 }
 
