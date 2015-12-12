@@ -13,6 +13,7 @@
 #include "../screen.h"
 #include "../game_internals.h"
 #include "lib/tasks/tasks.h"
+#include "lib/audio/audio.h"
 #include "lib/kb/kb.h"
 
 uint8_t seconds_remaining = 0, timeout_task = 0, turn_count = 0;
@@ -51,6 +52,7 @@ void turn_update() {
 	uint8_t move = GAME_MOVE_NONE;
 	
 	// TODO: Use game_button_is_down
+	/*
 	if (kb_haschar()) {
 		char input = kb_getchar();
 		switch (input) {
@@ -59,14 +61,15 @@ void turn_update() {
 			case GAME_BUTTON_GREEN: move = GAME_MOVE_GREEN; break;
 			case GAME_BUTTON_YELLOW: move = GAME_MOVE_YELLOW; break;
 		}
-	}
+	}*/
 	
-	//if (game_button_is_down(game_turn, GAME_BUTTON_RED)) {move = GAME_MOVE_RED;}
-	//else if (game_button_is_down(game_turn, GAME_BUTTON_BLUE)) {move = GAME_MOVE_BLUE;}
-	//else if (game_button_is_down(game_turn, GAME_BUTTON_GREEN)) {move = GAME_MOVE_GREEN;}
-	//else if (game_button_is_down(game_turn, GAME_BUTTON_YELLOW)) {move = GAME_MOVE_YELLOW;}
+	if (game_button_is_down(game_get_turn(), GAME_BUTTON_RED)) {move = GAME_MOVE_RED;}
+	else if (game_button_is_down(game_get_turn(), GAME_BUTTON_BLUE)) {move = GAME_MOVE_BLUE;}
+	else if (game_button_is_down(game_get_turn(), GAME_BUTTON_GREEN)) {move = GAME_MOVE_GREEN;}
+	else if (game_button_is_down(game_get_turn(), GAME_BUTTON_YELLOW)) {move = GAME_MOVE_YELLOW;}
 	
 	if (move != GAME_MOVE_NONE) {
+		audio_play("sndButton01_low.wav", 0, AUDIO_TRACK_2);
 		if (move != GAME_MOVE_NONE) {
 			game_set_led(move);
 		}

@@ -355,15 +355,21 @@ uint8_t game_get_move_count() {
 //}
 
 uint8_t game_button_is_down(uint8_t player, uint8_t button) {
-//	unsigned char c;
-	/*if (kb_haschar()) {
+	/*
+	unsigned char c;
+	if (kb_haschar()) {
 		c = kb_getchar();
 		pt_set_cursor_pos(2, 8);
 		printf("%c", c);
 		return ((uint8_t)c == button ? 1 : 0);
-	}*/
-	return snes_is_pressed(SNES_CONTROLLER1, button);
-//	return 0;
+	}
+	return 0;*/
+	
+	if (player == GAME_PLAYER_1)
+		return snes_is_pressed(SNES_CONTROLLER1, button);
+	else if (player == GAME_PLAYER_2)
+		return snes_is_pressed(SNES_CONTROLLER2, button);
+	return 0;
 }
 
 // Sets which LEDs should be enabled
