@@ -23,15 +23,10 @@
 
 // Global variables
 uint8_t game_p1_score = 0, game_p2_score = 0;
-//uint8_t game_state = GAME_STATE_BEGIN;
 uint8_t game_move_buffer[GAME_MAX_MOVES / 4];
 uint8_t game_move_buffer_count = 0;
 uint8_t game_turn = 0;
 uint8_t game_winner = GAME_PLAYER_NONE;
-//uint8_t game_number_pages = 1;
-//uint8_t game_page_scroll_accumulator = 0;
-//uint8_t game_page_scroll_accumulator_prev = 0;
-//uint8_t game_light_flicker_status = 0;
 
 // Game's entry point
 void game_run() {
@@ -71,225 +66,6 @@ void game_tick() {
 	screen_tick();
 }
 
-//void game_run2() {
-	//// Set all leds to output
-	//PORT_OUTPUT(GAME_LED_RED);
-	//PORT_OUTPUT(GAME_LED_BLUE);
-	//PORT_OUTPUT(GAME_LED_GREEN);
-	//PORT_OUTPUT(GAME_LED_YELLOW);
-	//
-	//PORT_OUTPUT(LED_STATUS);
-	//
-	//// Main game loop, initiates game screens
-	//while (1) {
-		//
-		//// Clear screen and leds and stuff
-		//pt_clear_screen();
-		//pt_set_color_modifier(COLOR_RESET_ALL);
-		//pt_set_color_modifier(FORE(RED));
-		//game_print_lcd_border();
-		//pt_set_color_modifier(FORE(GREEN));
-		//game_set_leds(0);
-		//game_clear_screen();
-		//
-		//game_page_scroll_accumulator = 0;
-		//game_page_scroll_accumulator_prev = 255;
-		//game_number_pages = 1;
-		//game_light_flicker_status = 0;
-		//
-		//// Start the correct game state
-		//switch (game_state) {
-			//case GAME_STATE_BEGIN:
-			//game_start_screen();
-			//break;
-			//case GAME_STATE_TURN:
-			//game_player_turn();
-			//break;
-			//case GAME_STATE_PLAYBACK:
-			//game_playback();
-			//break;
-			//case GAME_STATE_ROUNDOVER:
-			//game_round_over();
-			//break;
-			//case GAME_STATE_GAMEOVER:
-			//game_game_over();
-		//}
-	//}
-//}
-
-//void game_player_turn() {
-	//game_print_scores();
-	//game_print_lcd(1, game_turn, ">");
-	//uint8_t current_move = 0;
-	//uint8_t timeout_timer = task_create(game_turn_timeout, GAME_MOVE_TIMEOUT, 0);
-	//uint8_t input, move;
-	//while (current_move <= game_move_buffer_count && game_winner == GAME_PLAYER_NONE) {
-		//task_update();
-		//move = GAME_MOVE_NONE;
-		//
-		//// TODO: Use game_button_is_down
-		//if (kb_haschar()) {
-			//char input = kb_getchar();
-			//switch (input) {
-				//case GAME_BUTTON_RED: move = GAME_MOVE_RED; break;
-				//case GAME_BUTTON_BLUE: move = GAME_MOVE_BLUE; break;
-				//case GAME_BUTTON_GREEN: move = GAME_MOVE_GREEN; break;
-				//case GAME_BUTTON_YELLOW: move = GAME_MOVE_YELLOW; break;
-			//}
-		//}
-		//
-		////if (game_button_is_down(game_turn, GAME_BUTTON_RED)) {move = GAME_MOVE_RED;}
-		////else if (game_button_is_down(game_turn, GAME_BUTTON_BLUE)) {move = GAME_MOVE_BLUE;}
-		////else if (game_button_is_down(game_turn, GAME_BUTTON_GREEN)) {move = GAME_MOVE_GREEN;}
-		////else if (game_button_is_down(game_turn, GAME_BUTTON_YELLOW)) {move = GAME_MOVE_YELLOW;}
-		////
-		//if (move != GAME_MOVE_NONE && current_move < game_move_buffer_count) {
-			//// Compare move to existing moves
-			//if (move != game_get_move(current_move++)) {
-				//if (game_turn == GAME_PLAYER_1) {
-					//game_winner = GAME_PLAYER_2;
-				//} else {
-					//game_winner = GAME_PLAYER_1;
-				//}
-			//}
-		//} else if (move != GAME_MOVE_NONE) {
-			//// Add color to moves
-			//game_set_move(move, current_move++);
-			//task_reset(timeout_timer);
-		//}
-		//
-		//if (move != GAME_MOVE_NONE) {
-			//game_set_led(move);
-		//}
-	//}
-	//
-	//if (game_winner != GAME_PLAYER_NONE) {
-		//game_state = GAME_STATE_ROUNDOVER;
-		//
-		//if (game_winner == GAME_PLAYER_1) {
-			//game_p1_score++;
-		//} else if (game_winner == GAME_PLAYER_2) {
-			//game_p2_score++;
-		//}
-	//} else {
-		//game_state = GAME_STATE_PLAYBACK;
-		//if (game_turn == GAME_PLAYER_1) {
-			//game_turn = GAME_PLAYER_2;
-		//} else {
-			//game_turn = GAME_PLAYER_1;
-		//}
-		//game_move_buffer_count++;
-	//}
-	//task_delete(timeout_timer);
-	//
-//}
-//
-//void game_playback() {
-	//
-	//game_print_lcd(0, 0, "    PLAYER X    ");
-	//game_print_lcd(0, 1, "   GET READY!   ");
-	//
-	//char s[2];
-	//itoa(game_turn + 1, s, 10);
-	//game_print_lcd(11, 0, s);
-	//
-	//game_number_pages = game_move_buffer_count + 1;
-	//uint8_t page_scroll_task = task_create(game_increment_page, GAME_PLAYBACK_DELAY, 1);
-	//while (1) {
-		//task_update();
-		//if (game_page_scroll_accumulator != game_page_scroll_accumulator_prev) {
-			//
-			//game_page_scroll_accumulator_prev = game_page_scroll_accumulator;
-			//
-			//if (game_page_scroll_accumulator == game_move_buffer_count) {
-				//break;
-			//}
-			//
-			//game_set_led(game_get_move(game_page_scroll_accumulator));
-		//}
-	//}
-	//task_delete(page_scroll_task);
-	//game_state = GAME_STATE_TURN;
-//}
-//
-//void game_round_over() {
-	//
-	//game_number_pages = 3;
-	//uint8_t page_scroll_task = task_create(game_increment_page, GAME_PAGE_SCROLL_SPEED, 1);
-	//uint8_t light_flicker_task = task_create(game_light_flicker, GAME_LIGHT_FLICKER_SPEED, 1);
-	//while (1) {
-		//task_update();
-		//if (game_page_scroll_accumulator != game_page_scroll_accumulator_prev) {
-			//game_page_scroll_accumulator_prev = game_page_scroll_accumulator;
-			//game_clear_screen();
-			//char s[2];
-			//switch(game_page_scroll_accumulator) {
-				//case 0:
-				//game_print_lcd(0, 0, "   ROUND OVER   ");
-				//game_print_lcd(0, 1, "  PLAYER X WON! ");
-				//itoa(game_winner + 1, s, 10);
-				//game_print_lcd(9, 1, s);
-				//break;
-				//case 1:
-				//game_print_lcd(0, 0, " P1 Press Start ");
-				//game_print_lcd(0, 1, "   To Continue  ");
-				//break;
-				//case 2:
-				//game_print_scores();
-				//break;
-			//}
-		//}
-		//if (game_button_is_down(0, GAME_BUTTON_START)) {
-			//if (game_p1_score < GAME_SCORE_LIMIT && game_p2_score < GAME_SCORE_LIMIT) {
-				//game_state = GAME_STATE_TURN;
-				//game_round_initialize();
-			//} else {
-				//game_state = GAME_STATE_GAMEOVER;
-			//}
-			//break;
-		//}
-	//}
-	//task_delete(page_scroll_task);
-	//task_delete(light_flicker_task);
-//}
-//
-//void game_game_over() {
-	//
-	//game_number_pages = 3;
-	//uint8_t page_scroll_task = task_create(game_increment_page, GAME_PAGE_SCROLL_SPEED, 1);
-	//uint8_t light_flicker_task = task_create(game_light_flicker, GAME_LIGHT_FLICKER_SPEED, 1);
-	//while (1) {
-		//task_update();
-		//if (game_page_scroll_accumulator != game_page_scroll_accumulator_prev) {
-			//game_page_scroll_accumulator_prev = game_page_scroll_accumulator;
-			//game_clear_screen();
-			//char s[2];
-			//switch(game_page_scroll_accumulator) {
-				//case 0:
-				//game_print_lcd(0, 0, "    GAME OVER   ");
-				//game_print_lcd(0, 1, "  PLAYER X WON! ");
-				//itoa(game_winner + 1, s, 10);
-				//game_print_lcd(9, 1, s);
-				//break;
-				//case 1:
-				//game_print_lcd(0, 0, " P1 Press Start ");
-				//game_print_lcd(0, 1, "   To Continue  ");
-				//break;
-				//case 2:
-				//game_print_scores();
-				//break;
-			//}
-		//}
-		//if (game_button_is_down(0, GAME_BUTTON_START)) {
-			//game_state = GAME_STATE_BEGIN;
-			//break;
-		//}
-	//}
-	//task_delete(page_scroll_task);
-	//task_delete(light_flicker_task);
-	//
-//}
-
 void game_round_initialize() {
 	memset(game_move_buffer, 0, GAME_MAX_MOVES / 4);
 	game_move_buffer_count = 0;
@@ -312,6 +88,26 @@ void game_advance_turn() {
 	} else {
 		game_turn = GAME_PLAYER_1;
 	}
+	game_move_buffer_count++;
+}
+
+uint8_t game_get_winner() {
+	return game_winner;
+}
+void game_set_winner(uint8_t winner) {
+	game_winner = winner;
+	switch (winner) {
+		case GAME_PLAYER_1:
+			game_p1_score++;
+			break;
+		case GAME_PLAYER_2:
+			game_p2_score++;
+			break;
+	}
+}
+
+uint8_t game_is_score_limit_reached() {
+	return game_p1_score >= GAME_SCORE_LIMIT || game_p2_score >= GAME_SCORE_LIMIT;
 }
 
 void game_set_move(uint8_t move, uint8_t pos) {
@@ -334,23 +130,6 @@ uint8_t game_get_move(uint8_t pos) {
 uint8_t game_get_move_count() {
 	return game_move_buffer_count;
 }
-
-//// Increments the page scroll accumulator
-//void game_increment_page() {
-	//game_page_scroll_accumulator++;
-	//if (game_page_scroll_accumulator >= game_number_pages)
-		//game_page_scroll_accumulator = 0;
-//}
-//
-//void game_light_flicker() {
-	//if (game_light_flicker_status) {
-		//game_light_flicker_status = 0;
-		//game_set_leds(GAME_NO_COLORS);
-	//} else {
-		//game_light_flicker_status = 1;
-		//game_set_leds(GAME_ALL_COLORS);
-	//}
-//}
 
 uint8_t game_button_is_down(uint8_t player, uint8_t button) {
 	unsigned char c;

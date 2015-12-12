@@ -52,14 +52,11 @@
 #define GAME_BUTTON_RB      '2'
 
 // Game States
-// #define GAME_STATE_BEGIN		0
-// #define GAME_STATE_TURN		    1
-// #define GAME_STATE_PLAYBACK		3
-// #define GAME_STATE_GAMEOVER		4
-// #define GAME_STATE_ROUNDOVER	5
 #define GAME_SCREEN_BEGIN      begin
 #define GAME_SCREEN_PLAYERTURN turn
 #define GAME_SCREEN_PLAYBACK   playback
+#define GAME_SCREEN_ROUNDOVER  roundover
+#define GAME_SCREEN_GAMEOVER   gameover
 
 // Game Configuration Settings
 #define GAME_MAX_MOVES 256
@@ -77,11 +74,6 @@
 #define GAME_PLAYER_NONE 2
 
 // Internal Prototypes
-//void game_start_screen();
-//void game_player_turn();
-//void game_playback();
-//void game_round_over();
-//void game_game_over();
 void game_set_led(uint8_t move);
 void game_set_leds(uint8_t leds);
 void game_print_lcd_border();
@@ -89,14 +81,14 @@ void game_print_scores(char* buffer);
 void game_clear_screen();
 void game_print_lcd(uint8_t x, uint8_t y, char* string);
 void game_print_buffer(char* buffer, uint8_t x, uint8_t y, char* string);
-//void game_increment_page();
-//void game_light_flicker();
-//void game_turn_timeout();
 uint8_t game_get_turn();
 void game_advance_turn();
 void game_reset_scores();
 uint8_t game_get_move_count();
 void game_round_initialize();
+uint8_t game_get_winner();
+void game_set_winner(uint8_t winner);
+uint8_t game_is_score_limit_reached();
 void game_set_move(uint8_t move, uint8_t pos);
 uint8_t game_get_move(uint8_t pos);
 uint8_t game_button_is_down(uint8_t player, uint8_t button);

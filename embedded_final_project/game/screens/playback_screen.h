@@ -9,6 +9,8 @@
 #ifndef PLAYBACK_SCREEN_H_
 #define PLAYBACK_SCREEN_H_
 
+#define PLAYBACK_SCREEN_DELAY GAME_PLAYBACK_DELAY
+
 void playback_init();
 void playback_begin();
 void playback_render(char* buffer);
