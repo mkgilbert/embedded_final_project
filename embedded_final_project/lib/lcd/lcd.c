@@ -2,158 +2,170 @@
    By: Mike Gilbert */
 
 #include "lcd.h"
+#include <stdint.h>
 
 /************************************************************************/
-/* lcd_set_bits()                                                     
-   This sets bits corresponding to whatever command you want to send to the
-   lcd. The sending of a command has other procedures, so the setting of the bits
-   was put in a separate function.
-   Only set the 4 bits we are using for communication. Don't touch the rest on
-   the register (0-3)
-/************************************************************************/
-void lcd_set_bits(uint8_t hex_value){
-	if (hex_value & 1)
-		LCD_PORT |= (1<<LCD_DB4);
-	else
-		LCD_PORT &= ~(1<<LCD_DB4);
-	if (hex_value & 2)
-		LCD_PORT |= (1<<LCD_DB5);
-	else
-		LCD_PORT &= ~(1<<LCD_DB5);
-	if (hex_value & 4)
-		LCD_PORT |= (1<<LCD_DB6);
-	else
-		LCD_PORT &= ~(1<<LCD_DB6);
-	if (hex_value & 8)
-		LCD_PORT |= (1<<LCD_DB7);
-	else
-		LCD_PORT &= ~(1<<LCD_DB7);
-}
-
-
-/************************************************************************/
-/* lcd_cmd()
+/* lcd_cmd()  -- 8-bit communication
    sends the lcd a command as listed in the command table on the datasheet
 /************************************************************************/
-void lcd_cmd(uint8_t hex_value){
-	LCD_PORT &= ~(1<<LCD_RS);	// turn off RS pin
-	lcd_set_bits(hex_value);	// send data to lcd
-	LCD_PORT |= (1<<LCD_EN);	// turn on EN pin
-	_delay_ms(1);
-	LCD_PORT &= ~(1<<LCD_EN);	// turn EN pin back off
-	_delay_ms(1);
+void _lcd_cmd(uint8_t hex_value){
+	LCD_UNSET_RS();				// turn off RS pin
+	LCD_PORT = hex_value;		// send data to lcd
+	LCD_SET_EN();				// turn on EN pin
+	_delay_ms(20);
+	LCD_UNSET_EN();				// turn EN pin back off
+	_delay_ms(5);
 }
 
 /************************************************************************/
-/* lcd_init()                                                           
- command sequence is: 0x03, wait 5ms, 0x03, wait 100us, 0x03,
- 0x02, 0x02, 0x08, 0, 0x08, 0, 1, 0, 0x06
+/* lcd_init()  -- 8-bit communication                                                  
+   The idea here is that you must send several commands to the lcd before it
+   is ready to handle displaying data. There are 2 registers being used in this
+   implementation (LCD_REGISTER and LCD_WRITE_REGISTER). this is because I am using
+   8-bit mode so I need 8 pins for data transfer. There are an extra 2 pins that are
+   used to tell the lcd to prepare for receiving a command or data, and actually
+   having the lcd store that command or data.
+   RS is the pin for telling the lcd which mode to be in (command or data)
+   EN (or just E if you want) is the pin for telling the lcd to read all the data pins
+   into its local registers (? maybe this isn't 100% quite right)
 /************************************************************************/
-/*void lcd_init(){
-	LCD_REGISTER= 0xFF;	// set as output
-	DDRA |= 0xC0;		// set pins 6 and 7 on DDRA as output (RS and EN for LCD)
-	
-	lcd_set_bits(0x0);
-	_delay_ms(40);
-	// reset process from datasheet
-	lcd_cmd(0x03);
-	_delay_ms(20);
-	lcd_cmd(0x03);
-	_delay_ms(5);
-	lcd_cmd(0x03);
-	// end reset 
-	lcd_cmd(0x02);
-	lcd_cmd(0x02);
-	lcd_cmd(0x08);
-	lcd_cmd(0x0);
-	lcd_cmd(0x0C);
-	lcd_cmd(0x0);
-	lcd_cmd(0x06);
-}*/
-
 void lcd_init(){
 	// found this code on http://www.8051projects.net/lcd-interfacing/initialization.php
-	LCD_REGISTER = 0xFF;
-	DDRA |= 0xC0;
-	LCD_PORT = (0x0);
+	LCD_REGISTER = 0xFF;								// set whole data register to output
+	LCD_WRITE_REGISTER |= (1<<LCD_RS) | (1<<LCD_EN);	// set EN and RS pins as output			
+	LCD_PORT = (0x0);									// reset all data pins to 0
 	_delay_ms(20);
 	
-	LCD_PORT = 0x38; // 2 line, 8-bit, 5x7 dots
-	LCD_UNSET_RS(); // do this here???
-	LCD_SET_EN();	// enable H->
-	
+	LCD_PORT = 0x38;	// 2 line, 8-bit, 5x7 dots
+	LCD_UNSET_RS();		// tell lcd we are sending a command
+	LCD_SET_EN();		// enable H->
+	_delay_ms(10);
 	LCD_UNSET_EN();
 	_delay_ms(10);
 	LCD_PORT = 0x0F;
 	LCD_UNSET_RS();
 	LCD_SET_EN();
-	
+	_delay_ms(10);
 	LCD_UNSET_EN();
 	_delay_ms(10);
 	LCD_PORT = 0x01;
 	LCD_UNSET_RS();
 	LCD_SET_EN();
-	
+	_delay_ms(10);
 	LCD_UNSET_EN();
 	_delay_ms(10);
 	LCD_PORT = 0x06;
 	LCD_UNSET_RS();
+	_delay_ms(10);
 	LCD_SET_EN();
 	_delay_ms(20);
+	
+	lcd_clear();
 }
 
 /************************************************************************/
-/* lcd_clear()
+/* lcd_clear()	-- 8-bit communication
    just clears all characters off the display
 /************************************************************************/
 void lcd_clear(){
-	lcd_cmd(0x0);
-	lcd_cmd(0x01);
+	_lcd_cmd(0x01);
 }
 
 /************************************************************************/
-/* lcd_write_char()                                                 
-   writes on character to the current cursor position.
-   Note: because we are using 4-bit communication, we have to send a char
-   in 2 sections. We have to send the upper half first, then the lower.
+/* lcd_write_char() --8-bit communication                                                     
+   For 8-bit communication. Fills the register with data, Sets the RS and E pins high
+   and then unsets E.
 /************************************************************************/
-/*void lcd_write_char(uint8_t c){
-	uint8_t upper_half, lower_half;	// each is a nybble (half of the char)
-	upper_half = c & 0x0F;
-	lower_half = c & 0xF0;
-	LCD_SET_RS();
-	lcd_set_bits(upper_half);	// transfer upper half to lcd
-	LCD_SET_EN();
-	_delay_ms(1);
-	LCD_UNSET_EN();
-	_delay_ms(1);
-	lcd_set_bits(lower_half);	// transfer lower half to lcd
-	LCD_SET_EN();
-	_delay_ms(1);
-	LCD_UNSET_EN();
-	_delay_ms(1);
-}*/
-void lcd_write_char(uint8_t c){
+void lcd_write_char(char c){
 	LCD_PORT = c;
 	LCD_SET_RS();
 	LCD_SET_EN();
-	
+	_delay_ms(5);
 	LCD_UNSET_EN();
-	_delay_ms(10);
+	_delay_ms(1);
 }
 
+/************************************************************************/
+/* lcd_set_cursor()   -- 8-bit communication                                                     
+   places the cursor at column x and row y (where first positions are 0)
+/************************************************************************/
 void lcd_set_cursor(uint8_t x, uint8_t y){
-	uint8_t upper_half, lower_half, offset;
-	if (y == 1)
-		offset = (0x80 + x);
-	else if (y == 2)
-		offset = (0xC0 + x);
-	else {
-		// error...should I print something out or...?
-		return;	
+	x %= LCD_COLS;	// make sure x and y fall into applicable range
+	y %= LCD_ROWS;
+	uint8_t row = LCD_START_ADDRESS + (0x40*y);	// the row is start plus 0x40 a number of times
+												// depending on how many rows there are.
+	
+	uint8_t address = row + x;					// add the x value to get the column
+	_lcd_cmd(address);	
+}
+
+/************************************************************************/
+/* lcd_print()                                                      
+   prints a string beginning at an (x,y) position on the lcd, with either
+   wrapping (which clears the screen and continues the messages if need be)
+   or just cutting off the text after it fills the screen one time.
+   wrap = 1 turns on wrap
+   wrap = 0 turns off wrap
+   x = 0-indexed column on lcd
+   y = 0-indexed row on lcd
+/************************************************************************/
+void lcd_print(uint8_t wrap, uint8_t x, uint8_t y, char *str){
+	//printf("printing to lcd: (%"PRIu8", %"PRIu8")\n", x, y);
+	lcd_set_cursor(x, y);
+	
+	x %= LCD_COLS;					// make sure x and y are in bounds
+	y %= LCD_ROWS;
+	uint8_t lines_printed = 0;		// keep track of how many lines so we can clear screen after 2
+	char i = 0;						// string iterator
+	
+	while (*(str+i) != '\0') {
+		if (x == LCD_COLS){			// if at the end of the line
+			x = 0;					// reset x to beginning
+			lines_printed++;
+			if (lines_printed > 0 && y == LCD_ROWS-1) { // wait and clear screen if on last row
+				//printf(" [delay 3s] [clear] x->%"PRIu8 " y->%"PRIu8"\n", x, y);
+				
+				if (wrap) {			// if we are doing 'wrap' printing
+					_delay_ms(LCD_TEXT_WRAP_DELAY);
+					lcd_clear();
+				}
+				else				// not doing wrap printing, so just exit due to hitting end of line
+					break;
+			}
+			y = (y+1) % LCD_ROWS;	// move y to next row
+			//printf("\n[move (%"PRIu8", %"PRIu8")]\n", x, y);
+			lcd_set_cursor(x, y);
+		}
+		lcd_write_char(*(str+i));
+		//printf("%c", *(str+i));
+		i++;
+		x++;
 	}
-	upper_half = offset >> 4;
-	lower_half = offset & 0x0F;
-	lcd_cmd(upper_half);
-	lcd_cmd(lower_half);
+	//printf("\n");
+}
+
+void lcd_print_ctr(uint8_t row, char *str) {
+	
+	row %= LCD_ROWS; // make sure row in range
+	
+	// get total length of string first;
+	char i = 0;
+	while (*(str+i) != '\0') { i++; }
+	char len = i;
+	//printf("len: %d\n", len);
+	
+	// get center position
+	// string same size as the line
+	if (len == LCD_COLS){
+		lcd_print(0, 0, row, str);
+	} 
+	// string smaller than line
+	else if (len < LCD_COLS) {
+		char left_offset = (LCD_COLS - len)/2;
+		lcd_print(0, left_offset, row, str);
+	}
+	// string too long for line
+	else {
+		lcd_print(0, 0, row, str); // just print with no wrap until out of room
+	}
 }
