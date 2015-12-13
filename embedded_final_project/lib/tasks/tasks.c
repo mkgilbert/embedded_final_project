@@ -24,6 +24,12 @@ uint8_t task_create(void (*task)(), uint64_t interval, uint8_t repeat) {
 	if (num_tasks == NUM_TASKS)
 		return 0;
 	
+	uint8_t id = last_id;
+	while (task_exists(id)) {
+		id++;
+	}
+	last_id = id + 1;
+	
 	// Create the new task
 	TASK* t = &tasks[num_tasks++];
 	t->created = clock_get_ms();
@@ -32,7 +38,7 @@ uint8_t task_create(void (*task)(), uint64_t interval, uint8_t repeat) {
 	t->repeat = repeat;
 	t->next_expiration = t->created + t->interval;
 	t->task = task;
-	t->uid = last_id++;
+	t->uid = id;
 	
 	// Return the uid of the task
 	return t->uid;
@@ -80,6 +86,20 @@ void task_reset(uint8_t id) {
 			return;
 		}
 	}
+}
+
+// checks if a task exists
+uint8_t task_exists(uint8_t id) {
+	// Iterate over the tasks to find the specified task
+	uint8_t i;
+	TASK* t;
+	for (i = 0; i < num_tasks; i++) {
+		t = &tasks[i];
+		if (t->uid == id) {
+			return 1;
+		}
+	}
+	return 0;
 }
 
 // Delete a task with the specified ID

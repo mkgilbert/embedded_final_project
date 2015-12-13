@@ -7,8 +7,10 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <avr/pgmspace.h>
 #include "turn_screen.h"
 #include "roundover_screen.h"
+#include "gameover_screen.h"
 #include "playback_screen.h"
 #include "../screen.h"
 #include "../game_internals.h"
@@ -17,21 +19,55 @@
 #include "lib/kb/kb.h"
 
 uint8_t turn_seconds_remaining = 0, turn_timeout_task = 0, turn_turn_count = 0;
+uint8_t turn_feedback_task = 0, turn_feedback_progress = 0;
 
-void decrease_timer();
+void turn_decrease_timer();
+void turn_continue_delay();
+
+void turn_incorrect_delay();
+void turn_correct_delay();
 
 void turn_init() {
 	turn_seconds_remaining = TURN_SCREEN_PLAY_TIME / 1000;
 	turn_turn_count = 0;
+	turn_feedback_progress = 0;
 }
 
 void turn_begin() {
-	turn_timeout_task = task_create(decrease_timer, 1000, 1);
+	turn_timeout_task = task_create(turn_decrease_timer, 1000, 1);
 	game_set_leds(GAME_NO_COLORS);
 }
 
-void decrease_timer() {
+void turn_decrease_timer() {
 	turn_seconds_remaining--;
+}
+
+void turn_continue_delay() {
+	turn_feedback_task = task_create(turn_correct_delay, TURN_FEEDBACK_ANIMATION_CORRECT_SPEED, 1);
+}
+
+void turn_incorrect_delay() {
+	if (turn_feedback_progress < TURN_FEEDBACK_ANIMATION_INCORRECT_COUNT) {
+		game_set_leds(turn_feedback_progress++ % 2 ? GAME_ALL_COLORS: GAME_NO_COLORS);
+	} else {
+		task_delete(turn_feedback_task);
+		game_set_winner(game_get_turn() == GAME_PLAYER_1 ? GAME_PLAYER_2 : GAME_PLAYER_1);
+		if (game_is_score_limit_reached()) {
+			screen_transition_next(GAME_SCREEN_GAMEOVER, SCREEN_TRANSITION_NONE, 0);
+		}
+		else {
+			screen_transition_next(GAME_SCREEN_ROUNDOVER, SCREEN_TRANSITION_NONE, 0);
+		}
+	}
+}
+void turn_correct_delay() {
+	if (turn_feedback_progress < TURN_FEEDBACK_ANIMATION_CORRECT_COUNT) {
+		game_set_leds(turn_feedback_progress++ % 2 ? GAME_ALL_COLORS : GAME_NO_COLORS);
+	} else {
+		task_delete(turn_feedback_task);
+		game_advance_turn();
+		screen_transition_next(GAME_SCREEN_PLAYBACK, SCREEN_TRANSITION_NONE, 0);
+	}
 }
 
 void turn_render(char* buffer) {
@@ -46,9 +82,12 @@ void turn_update() {
 	
 	uint8_t total_turns = game_get_move_count();
 	
+	if (turn_turn_count > total_turns) {
+		return;
+	}
+	
 	if (turn_seconds_remaining == 0) {
-		game_set_winner(game_get_turn() == GAME_PLAYER_1 ? GAME_PLAYER_2 : GAME_PLAYER_1);
-		screen_transition_next(GAME_SCREEN_ROUNDOVER, SCREEN_TRANSITION_NONE, 0);
+		turn_feedback_task = task_create(turn_incorrect_delay, TURN_FEEDBACK_ANIMATION_INCORRECT_SPEED, 1);
 	}
 	
 	uint8_t move = GAME_MOVE_NONE;
@@ -79,8 +118,7 @@ void turn_update() {
 			// Check if the turn is correct
 			uint8_t check = game_get_move(turn_turn_count++);
 			if (check != move) {
-				game_set_winner(game_get_turn() == GAME_PLAYER_1 ? GAME_PLAYER_2 : GAME_PLAYER_1);
-				screen_transition_next(GAME_SCREEN_ROUNDOVER, SCREEN_TRANSITION_NONE, 0);
+				turn_feedback_task = task_create(turn_incorrect_delay, TURN_FEEDBACK_ANIMATION_INCORRECT_SPEED, 1);
 			} else {
 				turn_seconds_remaining = TURN_SCREEN_PLAY_TIME / 1000;
 				task_reset(turn_timeout_task);
@@ -88,8 +126,7 @@ void turn_update() {
 		} else if (turn_turn_count == total_turns) {
 			// Add a new turn
 			game_set_move(move, turn_turn_count++);
-			game_advance_turn();
-			screen_transition_next(GAME_SCREEN_PLAYBACK, SCREEN_TRANSITION_NONE, 0);
+			task_create(turn_continue_delay, TURN_SCREEN_CONTINUE_DELAY, 0);
 		}
 	}
 	

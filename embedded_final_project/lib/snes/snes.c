@@ -16,14 +16,21 @@
 uint16_t data_c1;
 uint16_t data_c2;
 
+uint16_t data_c1_prev;
+uint16_t data_c2_prev;
+
 uint8_t snes_is_pressed(uint8_t controller, uint8_t button){
+	
+	uint16_t diff = 0x0000;
+	
 	if (controller == SNES_CONTROLLER1){
-		return (data_c1 & (1<<button)) > 0;
+		diff = (data_c1 ^ data_c1_prev) & data_c1;
 	}
 	else if (controller == SNES_CONTROLLER2){
-		return (data_c2 & (1<<button)) > 0;
+		diff = (data_c2 ^ data_c2_prev) & data_c2;
 	}
-	return 0;
+	
+	return (diff & (1 << button)) > 0;
 }
 
 void snes_init(){
@@ -38,10 +45,16 @@ void snes_init(){
 	PORT_SET (SNES_DATA1);
 	PORT_SET (SNES_DATA2);
 	
+	data_c1_prev = data_c2_prev = data_c1 = data_c2 = 0x0000;
+	
 	snes_update();
 }
 
 void snes_update(){
+	
+	data_c1_prev = data_c1;
+	data_c2_prev = data_c2;
+	
 	data_c1 = 0x0000;
 	data_c2 = 0x0000;
 

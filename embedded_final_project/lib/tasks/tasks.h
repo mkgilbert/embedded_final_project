@@ -26,5 +26,6 @@ uint8_t task_create(void (*task)(), uint64_t interval, uint8_t repeat);
 void task_update();
 void task_delete(uint8_t id);
 void task_reset(uint8_t id);
+uint8_t task_exists(uint8_t id);
 
 #endif /* TASKS_H_ */

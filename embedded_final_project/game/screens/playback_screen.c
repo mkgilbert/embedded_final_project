@@ -32,7 +32,7 @@ void playback_render(char* buffer) {
 
 void playback_update() {
 	
-	if (playback_turn_count >= game_get_move_count()) {
+	if (playback_turn_count >= game_get_move_count() || game_button_is_down(game_get_turn(), GAME_BUTTON_SELECT)) {
 		screen_transition_next(GAME_SCREEN_PLAYERTURN, SCREEN_TRANSITION_NONE, 0);
 	} else {
 		game_set_led(game_get_move(playback_turn_count));
