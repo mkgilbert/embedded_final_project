@@ -6,9 +6,9 @@
  */ 
 
 
+#include "system.h"
 #include "lib/audio/audio.h"
 #include "lib/fat32/fat32.h"
-#include "system.h"
 #include <avr/interrupt.h>
 #include <stdio.h>
 
@@ -42,7 +42,7 @@ void audio_init(void){
     * Prescaler: clk/8 = 3.575MHz
     * PWM frequency = 8MHz / (255 + 1) = 31.25kHz
     */
-    TCCR1B = _BV(WGM10) | _BV(CS10);
+    TCCR1B = _BV(WGM10);
     
     /* set initial duty cycle to zero */
     OCR1A = 0;
