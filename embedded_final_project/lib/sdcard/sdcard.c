@@ -6,35 +6,47 @@
 #include "sdcard.h"
 
 int8_t sd_init() {
-	PORT_OUTPUT (SD_CS);
 	uint8_t i;
+
+	// Set our SD_CS port as an output
+	PORT_OUTPUT (SD_CS);
 	
+	// Deselect our SD card and idle for 80 clock cycles
 	CS_DISABLE (SD_CS);
-	for(i=0; i<10; i++) // idle for 1 bytes / 80 clocks
+	for(i=0; i<100; i++)
 		spi_rxtx(0xFF);
-	
+
+	// Go to the idle state using CMD0
 	for(i=0; i<10 && sd_command(SD_GO_IDLE_STATE, 0x00000000, 8) != 1; i++)
 		_delay_ms(100);
 	
-	if(i == 10) // card did not respond to initialization
+	if(i == 10) // SD card did not enter idle state
 		return -1;
 
+	// Tell the SD card what modes we support and the operating voltage
+	// using CMD8.
+	// Note: This command requires a correct CRC7
 	sd_command(SD_SEND_IF_COND, 0x400001aa, 8);
 
-	// ACMD41 until card comes out of idle, maximum 10 times
+	// Bring the SD card out of idle using ACMD41, retry a maximum 10 times
 	for (i = 0; i < 10; i++) {
-		sd_command(55, 0x00000000, 8);
-		if (sd_command(41, 0x40000000, 8) == 0)
-		break;
+		// Send CMD55 first to let the SD card know that the following 
+		// command is an application specific command.
+		sd_command(SD_APP_CMD, 0x00000000, 8);
+		// Send ACMD41 and check to see if we got out of idle or not
+		if (sd_command(SD_ACMD_SEND_OP_COND, 0x40000000, 8) == 0)
+			break;
 		_delay_ms(100);
 	}
 	
-	// CMD16 - set block length
-	sd_command(SD_SET_BLOCKLEN, 0x00000200, 8);
-	
-	if(i == 10) // card did not come out of idle
+	if(i == 10) // SD card did not come out of idle
 		return -2;
-		
+	
+	// Set the block length using CMD16
+	// Probably not needed on SDHC cards, but just in case
+	sd_command(SD_SET_BLOCKLEN, 0x00000200, 8);	
+	
+	// Everything went as expected, return 0
 	return 0;
 }
 

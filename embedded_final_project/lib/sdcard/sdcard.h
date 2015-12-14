@@ -7,7 +7,7 @@
 // SD commands
 // - Always OR's in 0x40 in sd_command
 #define SD_GO_IDLE_STATE 0x00
-#define SD_SEND_OP_COND 0x01
+#define SD_ACMD_SEND_OP_COND 0x29
 #define SD_SWITCH_FUNC 0x06
 #define SD_SEND_IF_COND 0x08
 #define SD_SEND_CSD 0x09
@@ -18,6 +18,7 @@
 #define SD_READ_SINGLE_BLOCK 0x11
 #define SD_READ_MULTIPLE_BLOCK 0x12
 #define SD_WRITE_SINGLE_BLOCK 0x18
+#define SD_APP_CMD 0x37
 
 #define SD_COMMAND_LEN 6
 #define SD_RW_WAIT_RETRIES 65535
