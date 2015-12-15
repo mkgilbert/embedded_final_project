@@ -25,17 +25,14 @@ void playback_begin() {
 }
 
 void playback_render(char* buffer) {
-	game_print_buffer(buffer, 0, 0, "    PLAYER X    ");
+	game_print_buffer_center(buffer, 0, game_get_p_str(game_get_turn()));
 	game_print_buffer(buffer, 0, 1, "   GET READY!   ");
-	game_print_buffer(buffer, 11, 0, game_get_turn() == GAME_PLAYER_1 ? GAME_PLAYER_1_STR : GAME_PLAYER_2_STR);
 }
 
 void playback_update() {
 	
-	if (playback_turn_count >= game_get_move_count() || game_button_is_down(game_get_turn(), GAME_BUTTON_SELECT)) {
+	if (playback_turn_count > game_get_move_count() || game_button_is_down(game_get_turn(), GAME_BUTTON_SELECT)) {
 		screen_transition_next(GAME_SCREEN_PLAYERTURN, SCREEN_TRANSITION_NONE, 0);
-	} else {
-		game_set_led(game_get_move(playback_turn_count));
 	}
 	
 }
@@ -49,5 +46,7 @@ void playback_destroy() {
 }
 
 void advance_playback() {
+	if (playback_turn_count < game_get_move_count())
+		game_set_led(game_get_move(playback_turn_count));
 	playback_turn_count++;
 }

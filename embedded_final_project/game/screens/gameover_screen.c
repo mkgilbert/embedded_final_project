@@ -32,22 +32,22 @@ void gameover_render(char* buffer) {
 	switch (gameover_page) {
 		case 0:
 			game_print_buffer(buffer, 0, 0, "   GAME OVER    ");
-			game_print_buffer(buffer, 0, 1, "  PLAYER X WON! ");
-			game_print_buffer(buffer, 9, 1, game_get_winner() == GAME_PLAYER_1 ? GAME_PLAYER_1_STR : GAME_PLAYER_2_STR);
+			game_print_buffer(buffer, 0, 1, "        WON!    ");
+			game_print_buffer(buffer, 4, 1, game_get_p_str(game_get_winner()));
 			break;
 		case 1:
 			game_print_scores(buffer);
 			break;
 		case 2:
-			game_print_buffer(buffer, 0, 0, " PX Press Start ");
+			game_print_buffer(buffer, 0, 0, "    Press Start ");
 			game_print_buffer(buffer, 0, 1, "   To Continue  ");
-			game_print_buffer(buffer, 2, 0, GAME_PLAYER_1_STR);
+			game_print_buffer(buffer, 0, 0, game_get_p_str(GAME_PLAYER_1));
 			break;
 	}
 }
 
 void gameover_update() {
-	if (game_button_is_down(0, GAME_BUTTON_START)) {
+	if (game_button_is_down(0, GAME_BUTTON_START) || game_button_is_down(1, GAME_BUTTON_START)) {
 		screen_transition_next(GAME_SCREEN_BEGIN, SCREEN_TRANSITION_NONE, 0);
 	}
 }

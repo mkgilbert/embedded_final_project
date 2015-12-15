@@ -54,11 +54,12 @@
 #define GAME_BUTTON_RB      SNES_BTN_R
 
 // Game States
-#define GAME_SCREEN_BEGIN      begin
-#define GAME_SCREEN_PLAYERTURN turn
-#define GAME_SCREEN_PLAYBACK   playback
-#define GAME_SCREEN_ROUNDOVER  roundover
-#define GAME_SCREEN_GAMEOVER   gameover
+#define GAME_SCREEN_BEGIN       begin
+#define GAME_SCREEN_PLAYERTURN  turn
+#define GAME_SCREEN_PLAYBACK    playback
+#define GAME_SCREEN_ROUNDOVER   roundover
+#define GAME_SCREEN_GAMEOVER    gameover
+#define GAME_SCREEN_NAME_SELECT name_select
 
 // Game Configuration Settings
 #define GAME_MAX_MOVES 256
@@ -83,6 +84,8 @@ void game_print_scores(char* buffer);
 void game_clear_screen();
 void game_print_lcd(uint8_t x, uint8_t y, char* string);
 void game_print_buffer(char* buffer, uint8_t x, uint8_t y, char* string);
+void game_print_buffer_center(char* buffer, uint8_t y, char* string);
+char* game_get_p_str(uint8_t player);
 uint8_t game_get_turn();
 void game_advance_turn();
 void game_reset_scores();
@@ -90,11 +93,15 @@ uint8_t game_get_move_count();
 void game_round_initialize();
 uint8_t game_get_winner();
 void game_set_winner(uint8_t winner);
+void game_set_winner_and_dont_change_any_shit(uint8_t winner);
+uint8_t game_get_ns();
+void game_set_ns(uint8_t player);
 uint8_t game_is_score_limit_reached();
 void game_set_move(uint8_t move, uint8_t pos);
 uint8_t game_get_move(uint8_t pos);
 uint8_t game_button_is_down(uint8_t player, uint8_t button);
 void game_tick();
+uint8_t game_get_audio_track();
 
 
 

@@ -33,22 +33,28 @@ void roundover_render(char* buffer) {
 	switch (roundover_page) {
 		case 0:
 			game_print_buffer(buffer, 0, 0, "   ROUND OVER   ");
-			game_print_buffer(buffer, 0, 1, "  PLAYER X WON! ");
-			game_print_buffer(buffer, 9, 1, game_get_winner() == GAME_PLAYER_1 ? GAME_PLAYER_1_STR : GAME_PLAYER_2_STR);
+			game_print_buffer(buffer, 0, 1, "        WON!    ");
+			game_print_buffer(buffer, 4, 1, game_get_p_str(game_get_winner()));
 			break;
 		case 1:
 			game_print_scores(buffer);
 			break;
 		case 2:
-			game_print_buffer(buffer, 0, 0, " PX Press Start ");
+			game_print_buffer(buffer, 0, 0, "    Press Start ");
 			game_print_buffer(buffer, 0, 1, "   To Continue  ");
-			game_print_buffer(buffer, 2, 0, GAME_PLAYER_1_STR);
+			uint8_t start_player = GAME_PLAYER_1;
+			if (game_get_winner() == GAME_PLAYER_1)
+				start_player = GAME_PLAYER_2;
+			game_print_buffer(buffer, 0, 0, game_get_p_str(start_player));
 			break;
 	}
 }
 
 void roundover_update() {
-	if (game_button_is_down(0, GAME_BUTTON_START)) {
+	uint8_t start_player = GAME_PLAYER_1;
+	if (game_get_winner() == GAME_PLAYER_1)
+		start_player = GAME_PLAYER_2;
+	if (game_button_is_down(start_player, GAME_BUTTON_START)) {
 		if (!game_is_score_limit_reached()) {
 			game_round_initialize();
 			screen_transition_next(GAME_SCREEN_PLAYERTURN, SCREEN_TRANSITION_NONE, 0);
